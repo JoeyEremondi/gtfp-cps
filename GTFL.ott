@@ -62,8 +62,10 @@ e :: e ::=
   | pi1 e :: :: Proj1 {{tex \pi_1 [[e]]}}
   | pi2 e :: :: Proj2 {{tex \pi_2 [[e]]}}
   | ep e :: :: Ascr
+  | error :: :: Err
   | ( e ) :: M :: Parens {{tex ([[e]]) }} 
   | [ x |=> e1 ] e2 :: M :: Subst {{tex  [ [[e1]] / [[x]] ] [[e2]] }}
+  | C [ e ] :: :: Context 
   | eval ( e ) :: M :: Eval
   | 120 :: M :: Num120
   | 5 :: M :: Num5
@@ -100,13 +102,19 @@ ep {{tex \varepsilon}} :: Evidence ::=
   | ep1 /\ ep2 :: M :: Meet
   | dom ep :: M :: Dom
   | cod ep :: M :: Cod
+  | left ep :: M :: Left
+  | right ep :: M :: Righ
 
 T :: Type ::= {{com Types}}
   | Nat :: :: Nat {{tex \mathsf{Nat} }}
   | Bool :: :: Bool {{tex \mathsf{Bool} }}
   | T1 -> T2 :: :: Arrow {{tex [[T1]]\to[[T2]]}}
   | T1 * T2 :: :: PRoduct {{ tex [[T1]]\times[[T2]]}}
-  | ? :: :: Unknown   
+  | ? :: :: Unknown 
+  | dom T :: M :: Dom
+  | cod T :: M :: Cod
+  | left T :: M :: Left 
+  | right T :: M :: Right   
   | ( T ) :: M :: Parens {{tex ([[T]])}}
   | [ T ] :: M :: Implicit {{ tex [[T]] }}
 
@@ -127,6 +135,28 @@ C :: C ::=                               {{ com evaluation context }}
   | if __ then e1 else e2 :: :: If
 
 
+u , k :: CPSValue ::= 
+  | x :: :: Var
+  | n :: :: Nat
+  | b :: :: Bool
+  | ( \ x . t ) :: :: Fun
+  | ( u1 , u2 ) :: :: Pair
+
+d :: CPSDecl ::=
+  | x = u :: :: Def
+  | x = pi1 u :: :: Proj1
+  | x = pi2 u :: :: Proj2
+  | x = u1 + u2 :: :: Plus
+
+
+t :: CPS ::= 
+  | let d in t :: :: Let
+  | u1 u2 :: :: App
+  | if u t1 t2 :: :: If
+  | halt [ u ] :: :: ReturnHalt
+  | error :: :: ErrorHalt
+
+
 terminals :: 'terminals_' ::=
   | --> :: :: StepsTo {{tex \longrightarrow}}
   | -->* :: :: StepsToStar {{tex {\longrightarrow^{*} } }}
@@ -137,6 +167,8 @@ terminals :: 'terminals_' ::=
   | /\ :: :: Meet {{tex \sqcap}}
   | dom :: :: Dom {{tex \ottkw{dom} }}
   | cod :: :: Cod {{tex \ottkw{cod} }}
+  | left :: :: Left {{tex \ottkw{left} }}
+  | right :: :: Right {{tex \ottkw{right} }}
   | elem :: :: Elem {{tex \in}}
 
 formula :: 'formula_' ::=
@@ -203,6 +235,14 @@ ep1 /\ ep2 undefined
 ------------------------------------------ :: AscrFail
 ep1 (ep2 e) --> ep1 /\ ep2 e
 
+e1 --> e2
+------------------------------------------ :: Context
+C[e1] --> C[e2]
+
+e1 --> error
+------------------------------------------ :: ContextFail
+C[e1] --> C[error]
+
 
 
 
@@ -260,7 +300,6 @@ by
   --------------- :: Ascr
   Gamma |- ep e : T1
 
-
 defn
 ep |- T1 ~=~ T2 :: :: Consistent :: Consistent {{com Type Consistency relative to Evidence }} 
 by 
@@ -292,4 +331,11 @@ T1 /\ T1' ==== T1''
 T2 /\ T2' ==== T2''
 --------------- :: Prod
 T1 * T2 /\ T1' * T2' ==== T1'' * T2'' 
+
+defn
+[[ e ]] k ==== t :: :: Transform :: Transform
+by
+
+---------------------------- :: Var
+[[x]] k ==== k x
 
