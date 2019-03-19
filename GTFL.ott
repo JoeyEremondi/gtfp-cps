@@ -1,0 +1,295 @@
+% !Ott debug
+% !Ott output ./GTFL.tex
+% !Ott binary /home/joey/GitHub/ott/bin/ott 
+
+embed {{tex-wrap-pre
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{supertabular}
+\usepackage{geometry}
+\usepackage{ifthen}
+\usepackage{pdflscape}
+\usepackage{alltt}%hack
+\geometry{a4paper,dvips,twoside,left=22.5mm,right=22.5mm,top=20mm,bottom=30mm}
+\usepackage{color}
+\usepackage{mathpartir}
+}}
+
+% \let\olddefs\ottdefnss
+% \renewcommand{\ottdefnss}{
+% \begin{figure}
+% \olddefs
+% \label{fig:relations}
+% \caption{Reduction and Conversion Relations on Terms}
+% \end{figure}
+% }
+
+embed {{tex 
+
+
+
+
+\ottdefnss
+}}
+
+
+metavar x, y, z  ::= {{com Symbols from some infinite set}}
+  {{ tex \mathit{[[x]]} }}  {{ texvar \mathsf{[[x]]} }} {{ lex alphanum }}
+
+indexvar i  ::= {{com Indices (ott artifact, please ignore)}}
+  {{ tex [[i]] }}  {{ texvar [[i]] }} {{ lex num }}
+
+
+grammar
+
+n  :: Integer ::= {{com Integers }}
+  |  n1 :+: n2  :: M :: Plus {{tex [[n1]]+[[n2]]}} %TODO color
+
+b {{tex b}} :: Boolean ::= {{ com Booleans }}
+  | true :: :: True
+  | false :: :: False
+
+
+e :: e ::= 
+  | x :: :: Var {{com Variables}}
+  | b :: :: Bool {{com Booleans }}
+  | n :: :: Nat {{com Number}}
+  | \ x : T . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
+  | e1 $ e2 :: :: App {{com Function Application}} {{tex [[e1]]\ [[e2]]}}
+  | e1 + e2 :: :: Plus
+  | if e1 then e2 else e3 :: :: If {{com Conditionals}} {{tex \ottkw{if}\ [[e1]]\ \ottkw{then}\ [[e2]]\ \ottkw{else}\ [[e3]]}}
+  | ( e1 , e2 ) :: :: Pair
+  | pi1 e :: :: Proj1 {{tex \pi_1 [[e]]}}
+  | pi2 e :: :: Proj2 {{tex \pi_2 [[e]]}}
+  | ep e :: :: Ascr
+  | ( e ) :: M :: Parens {{tex ([[e]]) }} 
+  | [ x |=> e1 ] e2 :: M :: Subst {{tex  [ [[e1]] / [[x]] ] [[e2]] }}
+  | eval ( e ) :: M :: Eval
+  | 120 :: M :: Num120
+  | 5 :: M :: Num5
+  | 4 :: M :: Num4
+  | 3 :: M :: Num3
+  | 2 :: M :: Num2
+  | 0 :: M :: Num0
+  | 1 :: M :: Num1
+  | e e1 ... ei :: M :: MApp
+  | ( e1 , .... ,  ei ) :: M :: PairMany
+
+
+O :: Observable ::= {{com Observable values: booleans or well-formed natural numbers}}
+  | b :: :: Bool
+  | n :: :: Nat
+
+r {{tex r}} :: Raw ::= {{com Raw Irreducable (not necessarily observable) values}}
+  | b :: :: Bool
+  | n :: :: Nat
+  | \ x : T . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
+  | ( v1 , v2 ) :: :: Pair
+  | ( r1 , .... ,  ri ) :: M :: PairMany
+
+v {{tex v}} :: Irr ::= {{com Irreducable (not necessarily observable) values}}
+  | ep r :: :: Ascr
+  | b :: :: Bool 
+  | n :: :: Nat
+  | \ x : T . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
+  | ( v1 , v2 ) :: :: Pair
+  | ( v1 , .... ,  vi ) :: M :: PairMany
+
+ep {{tex \varepsilon}} :: Evidence ::= 
+  | << T >> :: :: Ev {{tex \langle [[T]] \rangle}}
+  | ep1 /\ ep2 :: M :: Meet
+  | dom ep :: M :: Dom
+  | cod ep :: M :: Cod
+
+T :: Type ::= {{com Types}}
+  | Nat :: :: Nat {{tex \mathsf{Nat} }}
+  | Bool :: :: Bool {{tex \mathsf{Bool} }}
+  | T1 -> T2 :: :: Arrow {{tex [[T1]]\to[[T2]]}}
+  | T1 * T2 :: :: PRoduct {{ tex [[T1]]\times[[T2]]}}
+  | ? :: :: Unknown   
+  | ( T ) :: M :: Parens {{tex ([[T]])}}
+  | [ T ] :: M :: Implicit {{ tex [[T]] }}
+
+Gamma {{tex \Gamma}} :: Gamma ::= {{com Environments}}
+  | empty :: :: Empty {{tex \cdot}}
+  | Gamma , ( x : T ) :: :: Cons 
+
+C :: C ::=                               {{ com evaluation context }}
+  | __ e         ::  :: AppL                   
+  | v __         ::  :: AppR                  
+  | ( __ , e ) :: ::  PairL
+  | ( v , __ ) :: :: PairR
+  | ( pi1 __ ) :: :: Proj1
+  | ( pi2 __ ) :: :: Proj2
+  | ep __ :: :: Ascr
+  | __ + e1 :: :: PlusL
+  | v + __ :: :: PlusR
+  | if __ then e1 else e2 :: :: If
+
+
+terminals :: 'terminals_' ::=
+  | --> :: :: StepsTo {{tex \longrightarrow}}
+  | -->* :: :: StepsToStar {{tex {\longrightarrow^{*} } }}
+  | =/= :: :: Neq {{tex \neq }}
+  | |- :: :: Turnstile {{tex \vdash}}
+  | pi :: :: Pi {{tex \pi}}
+  | ~=~ :: :: Cong {{tex \cong}}
+  | /\ :: :: Meet {{tex \sqcap}}
+  | dom :: :: Dom {{tex \ottkw{dom} }}
+  | cod :: :: Cod {{tex \ottkw{cod} }}
+  | elem :: :: Elem {{tex \in}}
+
+formula :: 'formula_' ::=
+    % | formula \\\\ :: :: lbh {{ tex [[formula]] \ottlinebreakhack }}
+      | judgement           ::   :: judgement
+      | x =/= y :: :: Neq
+      | ( x : T ) elem Gamma :: :: Lookup
+      | ep undefined :: :: Undef
+      | T1 ==== T2 :: :: TypeEq
+
+
+contextrules
+  C _:: e :: e
+
+subrules 
+  O <:: e
+  v <:: e
+  r <:: v
+
+  
+
+
+
+
+defns
+Semantics :: '' ::=
+
+defn
+e1 --> e2 :: :: Red :: Red {{com Reduction Relation on terms}} 
+by 
+
+----------------------------------------- :: IfTrue
+if true then e1 else e2 --> e1
+
+----------------------------------------- :: IfFalse
+if false then e1 else e2 --> e2
+
+----------------------------------------- :: App
+(\ x : T . e) v  --> [ x |=> v ] e
+
+----------------------------------------- :: AppEv
+(ep1 (\ x : T . e)) (ep2 r)  --> cod ep2 ([ x |=> dom ep1 /\ ep2 r ] e)
+
+dom ep1 /\ ep2 undefined
+----------------------------------------- :: AppEvFail
+(ep1 (\ x : T . e)) (ep2 r)  --> error
+
+----------------------------------------- :: AppEvPartial
+(ep (\ x : T . e1)) r  --> cod ep([ x |=> dom ep e2 ] e1)
+
+----------------------------------------- :: Plus
+n1 + n2  --> n1 :+: n2
+
+------------------------------------------ :: Proj1
+pi1 (e1 , e2) --> e1
+
+------------------------------------------ :: Proj2
+pi2 (e1 , e2) --> e2
+
+------------------------------------------ :: Ascr
+ep1 (ep2 e) --> ep1 /\ ep2 e
+
+ep1 /\ ep2 undefined
+------------------------------------------ :: AscrFail
+ep1 (ep2 e) --> ep1 /\ ep2 e
+
+
+
+
+
+
+defns
+Types :: '' ::=
+
+defn
+Gamma |- e : T :: :: Hastype :: Hastype {{com Typability relation }} 
+by 
+
+ (x : T) elem Gamma
+---------------- :: Var
+  Gamma |- x : T
+
+-------------- :: Bool
+  Gamma |- b : Bool
+
+-------------- :: Zero
+  Gamma |- n : Nat 
+
+
+  Gamma , ( x : T1) |- e : T2
+-------------- :: Lam
+  Gamma |- \ x : T1 . e : T1 -> T2 
+
+  Gamma |- e1 : T1 -> T2
+  Gamma |- e2 : T1
+-------------- :: App
+  Gamma |- e1 e2 : T2
+
+  Gamma |- e : Bool
+  Gamma |- e1 : T
+  Gamma |- e2 : T
+  ---------------- :: If
+  Gamma |- if e then e1 else e2 : T  
+
+
+  Gamma |- e1 : T1
+  Gamma |- e2 : T2
+  --------------- :: Pair
+  Gamma |- (e1 , e2 ) : T1 * T2
+
+  Gamma |- e : T * T2
+  --------------- :: Proj1
+  Gamma |- pi1 e : T
+
+  Gamma |- e : T1 * T
+  --------------- :: Proj2
+  Gamma |- pi1 e : T
+
+  Gamma |- e : T2
+  ep |- T1 ~=~ T2
+  --------------- :: Ascr
+  Gamma |- ep e : T1
+
+
+defn
+ep |- T1 ~=~ T2 :: :: Consistent :: Consistent {{com Type Consistency relative to Evidence }} 
+by 
+
+T3 /\ T1 ==== T3
+T3 /\ T2 ==== T3
+----------------- :: Ev
+<< T3 >> |- T1 ~=~ T2
+
+defn
+T1 /\ T2 ==== T3 :: :: Meet :: Meet {{com Precision Meet }} {{tex [[T1]] \sqcap [[T2]] = [[T3]]}}
+by 
+
+------------- :: DynL
+? /\ T ==== T
+
+------------- :: DynR
+T /\ ? ==== T
+
+-------------- :: Refl
+T /\ T ==== T 
+
+T1 /\ T1' ==== T1''
+T2 /\ T2' ==== T2''
+--------------- :: Fun
+T1 -> T2 /\ T1' -> T2' ==== T1'' -> T2'' 
+
+T1 /\ T1' ==== T1''
+T2 /\ T2' ==== T2''
+--------------- :: Prod
+T1 * T2 /\ T1' * T2' ==== T1'' * T2'' 
+
