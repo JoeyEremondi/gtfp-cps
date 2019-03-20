@@ -61,6 +61,8 @@ e :: e ::=
   | ( e1 , e2 ) :: :: Pair
   | pi1 e :: :: Proj1 {{tex \pi_1 [[e]]}}
   | pi2 e :: :: Proj2 {{tex \pi_2 [[e]]}}
+  | pi @ i e :: M :: Proji {{tex \pi_{[[i]]} [[e]] }}
+  | e @ i :: M :: Expri {{tex [[e]]_{[[i]]} }}
   | ep e :: :: Ascr
   | error :: :: Err
   | ( e ) :: M :: Parens {{tex ([[e]]) }} 
@@ -111,10 +113,10 @@ T :: Type ::= {{com Types}}
   | T1 -> T2 :: :: Arrow {{tex [[T1]]\to[[T2]]}}
   | T1 * T2 :: :: PRoduct {{ tex [[T1]]\times[[T2]]}}
   | ? :: :: Unknown 
-  | dom T :: M :: Dom
-  | cod T :: M :: Cod
-  | left T :: M :: Left 
-  | right T :: M :: Right   
+  % | dom T :: M :: Dom
+  % | cod T :: M :: Cod
+  % | left T :: M :: Left 
+  % | right T :: M :: Right   
   | ( T ) :: M :: Parens {{tex ([[T]])}}
   | [ T ] :: M :: Implicit {{ tex [[T]] }}
 
@@ -178,6 +180,7 @@ formula :: 'formula_' ::=
       | ( x : T ) elem Gamma :: :: Lookup
       | ep undefined :: :: Undef
       | T1 ==== T2 :: :: TypeEq
+      | i elem { 1 , 2 } :: :: Index
 
 
 contextrules
@@ -222,11 +225,10 @@ dom ep1 /\ ep2 undefined
 ----------------------------------------- :: Plus
 n1 + n2  --> n1 :+: n2
 
------------------------------------------- :: Proj1
-pi1 (e1 , e2) --> e1
+i elem {1,2}
+------------------------------------------ :: Proj
+pi@i (e1 , e2) --> e_i
 
------------------------------------------- :: Proj2
-pi2 (e1 , e2) --> e2
 
 ------------------------------------------ :: Ascr
 ep1 (ep2 e) --> ep1 /\ ep2 e
@@ -287,13 +289,11 @@ by
   --------------- :: Pair
   Gamma |- (e1 , e2 ) : T1 * T2
 
-  Gamma |- e : T * T2
-  --------------- :: Proj1
-  Gamma |- pi1 e : T
+  Gamma |- e : T1 * T2
+  i elem {1,2}
+  --------------- :: Proj
+  Gamma |- p@i e : T
 
-  Gamma |- e : T1 * T
-  --------------- :: Proj2
-  Gamma |- pi1 e : T
 
   Gamma |- e : T2
   ep |- T1 ~=~ T2
