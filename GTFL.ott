@@ -33,7 +33,7 @@ embed {{tex
 }}
 
 
-metavar x, y, z  ::= {{com Symbols from some infinite set}}
+metavar x, y, z, c  ::= {{com Symbols from some infinite set}}
   {{ tex \mathit{[[x]]} }}  {{ texvar \mathsf{[[x]]} }} {{ lex alphanum }}
 
 indexvar i  ::= {{com Indices (ott artifact, please ignore)}}
@@ -44,6 +44,11 @@ grammar
 
 n  :: Integer ::= {{com Integers }}
   |  n1 :+: n2  :: M :: Plus {{tex [[n1]]+[[n2]]}} %TODO color
+  | DYN :: M :: Dyn
+  | BOOL :: M :: Bool
+  | NAT :: M :: Nat
+  | ARR :: M :: Arr
+  | PROD :: M :: Prod
 
 b {{tex b}} :: Boolean ::= {{ com Booleans }}
   | true :: :: True
@@ -57,6 +62,7 @@ e :: e ::=
   | \ x : T . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
   | e1 $ e2 :: :: App {{com Function Application}} {{tex [[e1]]\ [[e2]]}}
   | e1 + e2 :: :: Plus
+  | e1 == e2 :: :: Eq
   | if e1 then e2 else e3 :: :: If {{com Conditionals}} {{tex \ottkw{if}\ [[e1]]\ \ottkw{then}\ [[e2]]\ \ottkw{else}\ [[e3]]}}
   | ( e1 , e2 ) :: :: Pair
   | pi1 e :: :: Proj1 {{tex \pi_1 [[e]]}}
@@ -104,8 +110,9 @@ ep {{tex \varepsilon}} :: Evidence ::=
   | ep1 /\ ep2 :: M :: Meet
   | dom ep :: M :: Dom
   | cod ep :: M :: Cod
-  | left ep :: M :: Left
-  | right ep :: M :: Righ
+  | Proj1 ep :: M :: Left
+  | Proj2 ep :: M :: Right
+  | Proj @ i ep :: M :: Proji
 
 T :: Type ::= {{com Types}}
   | Nat :: :: Nat {{tex \mathsf{Nat} }}
@@ -134,6 +141,8 @@ C :: C ::=                               {{ com evaluation context }}
   | ep __ :: :: Ascr
   | __ + e1 :: :: PlusL
   | v + __ :: :: PlusR
+  | __ == e1 :: :: EqL
+  | v == __ :: :: EqR
   | if __ then e1 else e2 :: :: If
 
 
@@ -141,22 +150,33 @@ u , k :: CPSValue ::=
   | x :: :: Var
   | n :: :: Nat
   | b :: :: Bool
-  | ( \ x . t ) :: :: Fun
+  |  \ x1 ... xi . t  :: :: Fun
   | ( u1 , u2 ) :: :: Pair
+  | ( u ) :: M :: Parens
+  | MEET :: M :: MeetFun
+  | DOM ::  M :: DomFun
+  | COD :: M :: CodFun
+  | PROD1 :: M :: Prod1
+  | PROD2 :: M :: Prod2
+  | PROD @ i :: M :: Prodi
 
 d :: CPSDecl ::=
   | x = u :: :: Def
   | x = pi1 u :: :: Proj1
   | x = pi2 u :: :: Proj2
   | x = u1 + u2 :: :: Plus
+  | x = u1 == u2 :: :: Eq
+  | x = pi @ i u :: M :: Proji
 
 
 t :: CPS ::= 
+  | v :: :: Value 
   | let d in t :: :: Let
-  | u1 u2 :: :: App
+  | u' [ u1 , ... , ui ] :: :: App
   | if u t1 t2 :: :: If
   | halt [ u ] :: :: ReturnHalt
   | error :: :: ErrorHalt
+  | ( t ) :: M :: Parens
 
 
 terminals :: 'terminals_' ::=
@@ -169,18 +189,21 @@ terminals :: 'terminals_' ::=
   | /\ :: :: Meet {{tex \sqcap}}
   | dom :: :: Dom {{tex \ottkw{dom} }}
   | cod :: :: Cod {{tex \ottkw{cod} }}
-  | left :: :: Left {{tex \ottkw{left} }}
-  | right :: :: Right {{tex \ottkw{right} }}
+  | Proj1 :: :: Proj1 {{tex \ottkw{Proj}_1 }}
+  | Proj2 :: :: Proj2 {{tex \ottkw{Proj}_2 }}
   | elem :: :: Elem {{tex \in}}
 
 formula :: 'formula_' ::=
     % | formula \\\\ :: :: lbh {{ tex [[formula]] \ottlinebreakhack }}
       | judgement           ::   :: judgement
-      | x =/= y :: :: Neq
+      | e1 =/= e2 :: :: Neq
       | ( x : T ) elem Gamma :: :: Lookup
       | ep undefined :: :: Undef
       | T1 ==== T2 :: :: TypeEq
       | i elem { 1 , 2 } :: :: Index
+      | c fresh :: :: Fresh
+      | k := k' :: :: Assign
+      | t := t' :: :: Assignt
 
 
 contextrules
@@ -225,9 +248,37 @@ dom ep1 /\ ep2 undefined
 ----------------------------------------- :: Plus
 n1 + n2  --> n1 :+: n2
 
+n1 + v --> e
+----------------------------------------- :: PlusEvL
+ep n1 + v  --> e
+
+n1 + n2 --> e
+----------------------------------------- :: PlusEvR
+n1 + ep n2  --> e
+
+----------------------------------------- :: EqT
+n == n  --> true
+
+n1 =/= n2
+----------------------------------------- :: EqF
+n1 == n2  --> false
+
+n1 == v --> e
+----------------------------------------- :: EqEvL
+ep n1 == v  --> e
+
+n1 == n2 --> e
+----------------------------------------- :: EqEvR
+n1 == ep n2  --> e
+
+
 i elem {1,2}
 ------------------------------------------ :: Proj
 pi@i (e1 , e2) --> e_i
+
+i elem {1,2}
+------------------------------------------ :: ProjEv
+pi@i (ep (e1 , e2)) --> Proj@i ep e_i
 
 
 ------------------------------------------ :: Ascr
@@ -241,9 +292,9 @@ e1 --> e2
 ------------------------------------------ :: Context
 C[e1] --> C[e2]
 
-e1 --> error
+e --> error
 ------------------------------------------ :: ContextFail
-C[e1] --> C[error]
+C[e] --> C[error]
 
 
 
@@ -264,8 +315,18 @@ by
 -------------- :: Bool
   Gamma |- b : Bool
 
--------------- :: Zero
+-------------- :: Nat
   Gamma |- n : Nat 
+
+  Gamma |- e1 : Nat
+  Gamma |- e2 : Nat
+  -------------- :: Plus
+  Gamma |- e1 + e2 : Nat 
+
+  Gamma |- e1 : Nat
+  Gamma |- e2 : Nat
+  -------------- :: Bool
+  Gamma |- e1 == e2 : Nat
 
 
   Gamma , ( x : T1) |- e : T2
@@ -337,5 +398,50 @@ defn
 by
 
 ---------------------------- :: Var
-[[x]] k ==== k x
+[[x]] k ==== k[x]
 
+---------------------------- :: Bool
+[[b]] k ==== k [(DYN, b)]
+
+
+---------------------------- :: Num
+[[n]] k ==== k [(DYN, n)]
+
+c fresh
+[[e]] c ==== t
+---------------------------- :: Fun
+[[ (\ x : T . e) ]] k ==== k [(DYN, \ x c . t )]
+
+k1 := ( \x2 . let y1 = pi1 x1 in let z1 = pi2 x1 in let y2 = pi1 x2 in let z2 = pi2 x2 in t1 )
+t1 := DOM [y1, \y1' . DOM [ y1, \y1''. MEET [y1', y2, (\ y3 . z1 [(y3, z2), (\z3 . k [(y1'', z3)] ) ] )]]]
+[[e2]] k1 ==== t'
+[[e1]] (\ x1 . t' ) ==== t
+---------------------------- :: App
+[[ e1 e2 ]] k ==== t
+
+k1 := ( \x2 . let z1 = pi2 x1 in let z2 = pi2 x2 in let z3 = z1 + z2 in k [z3] )
+[[e2]] k1 ==== t'
+[[e1]] (\ x1 . t' ) ==== t
+---------------------------- :: Plus
+[[ e1 + e2 ]] k ==== t
+
+k1 := ( \x2 . let z1 = pi2 x1 in let z2 = pi2 x2 in let z3 = z1 == z2 in k [z3] )
+[[e2]] k1 ==== t'
+[[e1]] (\ x1 . t' ) ==== t
+---------------------------- :: Eq
+[[ e1 + e2 ]] k ==== t
+
+[[e2]] (\ x2 . k [(DYN, (x1, x2))] ) ==== t'
+[[e1]] (\ x1 . t' ) ==== t
+---------------------------- ::Pair
+[[ e1 + e2 ]] k ==== t
+
+[[e1]] k ==== t1
+[[e2]] k ==== t2
+[[e0]] (\ x0 . let x = pi2 x0 in if x t1 t2 ) ==== t
+---------------------------- :: If
+[[ if e0 then e1 else e2 ]] k ==== t
+
+[[e]] (\ x . let x' = pi@i x in k [x'] ) ==== t
+---------------------------- ::Pair
+[[ pi @ i e ]] k ==== t
