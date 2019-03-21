@@ -445,3 +445,15 @@ k1 := ( \x2 . let z1 = pi2 x1 in let z2 = pi2 x2 in let z3 = z1 == z2 in k [z3] 
 [[e]] (\ x . let x' = pi@i x in k [x'] ) ==== t
 ---------------------------- ::Pair
 [[ pi @ i e ]] k ==== t
+
+[[ep]] ==== u
+[[e]] (\ x . let x1 = pi1 x in let x2 = pi2 x in MEET [u,x1, (\y . k [(y,x2)]) ] ) ==== t
+---------------------------- ::Ev
+[[ ep  e ]] k ==== t
+
+defn
+[[ ep ]]  ==== u :: :: EvTransform :: EvTransform
+by
+
+------------------ :: Bool
+[[<<Bool>>]] ==== BOOL
