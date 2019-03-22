@@ -2,16 +2,260 @@
 \usepackage{amsmath,amssymb}
 \usepackage{supertabular}
 \usepackage{geometry}
-\usepackage{ifthen}
-% \usepackage{pdflscape}
-% \usepackage{alltt}%hack
+\usepackage{ifthen} 
+% \usepackage{pdflscape} 
+% \usepackage{alltt}%hack 
 % \geometry{a4paper,dvips,twoside,left=22.5mm,right=22.5mm,top=20mm,bottom=30mm}
 \usepackage{color}    
-\usepackage{mathpartir}   
-  
+\usepackage{mathpartir}  
+\usepackage{stmaryrd}    
+
+\usepackage{keyval}
+\usepackage{ifthen} 
+\usepackage{enumitem}   
+
+\usepackage{amsthm}
+\usepackage{hyperref} 
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{lemma}{Lemma}[section]
+
+\usepackage[implicitPremiseBreaks]{ottalt}  
+\inputott{GTFL_defns}       
+ 
+   
 
 
 \begin{document}
-sfdsfsd  
+
+\section{Source Language Syntax}
+
+\begin{figure}
+$[[n]] \in \mathbb{Z}$, $[[b]]\in\mathbb{B}$
+
+\nonterms{e}
+\nonterms{O}
+\nonterms{v}
+\nonterms{r}
+\caption{Source Language Syntax: Terms}
+\label{fig:term-syntax}
+\end{figure}
+
+\begin{figure}
+
+\nonterms{T}
+\nonterms{ep}
+\nonterms{Gamma}   
+
+\caption{Source Language Syntax: Types}
+\label{fig:type-syntax}
+\end{figure} 
+
+\section{Source Language Statics and Dynamics}
+
+\begin{figure}
+\ottdefnHastype{} 
+\caption{Source Language: Type Rules}
+\label{fig:source-typerules}
+\end{figure} 
+
+\begin{figure}
+    \ottdefnConsistent{} 
+    \ottdefnMeet{}
+    \caption{Source Language: Type Consistency and Precision}
+    \label{fig:source-precision}
+    \end{figure} 
+
+\begin{figure}
+\ottdefnsSemantics{} 
+\caption{Source Language: Small-Step Operational Semantics}
+\label{fig:source-semantics}
+\end{figure}
+
+\section{The Target Language}
+
+\begin{figure}
+    \nonterms{u}
+    \nonterms{d}
+    \nonterms{t}
+    \caption{Target Language: Syntax}
+    \label{fig:target-syntax}
+    \end{figure}
+
+\section{The Translation}
+
+\subsection{Translating Evidence}
+
+\subsubsection{Helper Functions}
+
+With our evidence represented as tuples with integer tags, we must represent the partial functions
+on types in our target language. 
+The implementation is given in \autoref{fig:meet-impl}.
+Doing this is straightforward: if one argument is $[[?]]$,
+then we return the other argument. Otherwise, we check if we have simple or complex types.
+For simple types, either $[[Bool /\ Bool ==== Bool]]$, $[[Nat /\ Nat ==== Nat]]$.
+For complex types, we check that the tags agree, then recursively compute the meets of the sub-components.
+If neither argument is $[[?]]$, and there is a tag mismatch, then we must raise an exception, retuning the $[[error]]$
+continuation.
+
+For the partial functions decomposing types, we first check if the input is $[[?]]$,
+in which case we return $[[?]]$. Otherwise, we check the tag, and if it is correct, we return
+the relevant sub-component of the type. In all other cases, we throw an error.
+We give an example implementation for $\ottkw{dom}$ in \autoref{fig:dom-impl}: either we are given $[[?]]$
+and return $[[?]]$, we are given $[[T1 -> T2]]$ and we return $[[T1]]$, or we raise an exception.
+We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are implemented similarly.
+
+\begin{figure}
+\begin{align*}
+    & [[MEET]] & = & [[fix self \ ty1 ty2 c . let tag1 := pi1 ty1 in let sub1 := pi2 ty1 in let isDyn1 := tag1 == DYN in \\ ]]
+    &&& [[ if isDyn1 c[ty2] \\ ]]
+    &&& [[ let tag2 := pi1 ty2 in let sub2 := pi2 ty2 in let isDyn2 := tag2 == DYN in \\  ]]
+    &&& [[ if isDyn2 c[ty1] \\ ]]
+    &&& [[ let isNat1 := tag1 == NAT in let isNat2 := tag2 == NAT in \\ ]]
+    &&& [[ if isNat1 (if isNat2 k[NAT] error) \\ ]]
+    &&& [[ let isBool1 := tag1 == BOOL in let isBool2 := tag2 == BOOL in \\ ]]
+    &&& [[ if isBool1 (if isBool2 k[BOOL] error) \\ ]]
+    &&& [[ let isArrow1 := tag1 == ARR in let isArrow2 := tag2 == ARR in \\ ]]
+    &&& [[ iif isArrow1 \\ ]]
+    &&& [[ -- let dom1 := pi1 sub1 in let cod1 := pi2 sub1 in \\]]  
+    &&& [[ -- iif isArrow2 \\ ]]
+    &&& [[ -- -- let dom2 := pi1 sub2 in let cod2 := pi2 sub2 in \\]]
+    &&& [[ -- -- self [dom1, dom2, (\ meet1 . self[cod1, cod2, (\ meet2 . k[(ARR, (meet1, meet2))] )] )] ]] \\
+    &&& [[ -- else error]] \\
+    &&& [[ let isProduct1 := tag1 == PROD in let isProduct2 := tag2 == PROD in \\ ]]
+    &&& [[ iif isProduct1 \\ ]]
+    &&& [[ -- let lhs1 := pi1 sub1 in let rhs1 := pi2 sub1 in \\]]  
+    &&& [[ -- iif isProduct2 \\ ]]
+    &&& [[ -- -- let lhs2 := pi1 sub2 in let rhs2 := pi2 sub2 in \\]]
+    &&& [[ -- -- self [lhs1, lhs2, (\ meet1 . self[rhs1, rhs2, (\ meet2 . k[(PROD, (meet1, meet2))] )] )] ]] \\
+    &&& [[ -- else error]] \\
+    &&& [[ else error]] 
+    %
+\end{align*}
+\caption{CPS implementation of meet}
+\label{fig:meet-impl}
+\end{figure}
+
+\begin{figure}
+    \begin{align*}
+        & [[DOM]] & = & [[\ ty c . let tag := pi1 ty1 in let sub := pi2 ty1 in let isDyn := tag == DYN in \\ ]]
+        &&& [[ if isDyn c[(DYN,0)] \\ ]]
+        &&& [[let isArrow := tag == ARR in \\ ]]
+        &&& [[if isArrow (let ret := pi1 sub in k[ret] ) error ]]
+        %
+    \end{align*}
+    \caption{CPS implementation of domain}
+    \label{fig:dom-impl}
+    \end{figure}
+
+\begin{figure}
+    \ottdefnTransform
+    \caption{Translation: Terms and Programs}
+    \label{fig:trans-terms}
+    \end{figure}
+ 
+    \begin{figure}
+        \ottdefnEvTransform
+        \caption{Translation: Evidence}
+        \label{fig:trans-types}
+        \end{figure}
+
+        \begin{figure}
+            \ottdefnValTransform
+            \caption{Translation: Evidence}
+            \label{fig:trans-values}
+            \end{figure}
+
+\section{Correctness}
+
+\begin{lemma}[Correctness of Evidence Translation]
+  Consider evidence $[[ep1]],[[ep2]]$. Then, for any $[[k]]$:
+  \begin{itemize}
+      \item $[[MEET[ [|ep1|], [|ep2|], k ] -->* k[ [| ep1 /\ ep2 |] ] ]]$ if $[[ep1 /\ ep2]]$ is defined.
+      \item If $[[ep1 /\ ep2]]$ is undefined, then $[[MEET[ [|ep1|], [|ep2|] ] -->* error ]]$.
+  \end{itemize}
+  The same property holds for $[[dom ep1]]$, $[[cod ep1]]$, and $[[Proj@i ep1]]$.
+\end{lemma}
+
+\begin{lemma}[Canonical Forms for Translated Values]
+    \label{lem:canonical-trans}
+    For an irreducible $[[v]]$, $[[ [|v|] ==== ( [|ep|], u) ]] $ for some evidence $[[ep]]$ and CPS-value $[[u]]$.
+    Moreover, if $[[v]]$ is a raw irreducible, then $[[ep]]=[[<<?>>]]$.
+\end{lemma}
+\begin{proof}
+    By inversion on the definition of $[[ [|v|] ]]$.
+\end{proof}
+
+\begin{lemma}[Value and Expression Translations Match]
+    \label{lem:value-expr-trans}
+Let $[[v]]$ be an irredicable term. Then, for any $[[k]]$, $[[v]]$, $[[ [|v|]k -->* k [ [|v|] ]  ]]$.
+\end{lemma}
+\begin{proof}
+    By induction on $[[v]]$.
+
+    \begin{itemize}
+        \item Case $[[v]] = [[b]]$, $[[v]] = [[n]]$, or $[[v]] = [[\ x : T . e]]$: trivial.
+        \item Case $[[v]] = [[(v1, v2)]]$.
+        % By our hypothesis, for any $[[k0]]$, $[[ [|v1|]k0 -->* k0 [ [|v1|] ]  ]]$ and $[[ [|v2|]k0 -->* k0 [ [|v2|] ]  ]]$.
+        So $[[ [|(v1, v2)|]k ==== [| v1 |](\ x1 . [|v2|](\ x2 . k[(DYN, (x1, x2))] ) )  ]]$,
+        which, by our hypothesis, reduces to  $[[t1 -->* (\ x1 . (\ x2 . k[(DYN, (x1, x2))] )[ [|v2|] ] )[ [|v1|] ] ]]$,
+        which we can then reduce to $[[k[(DYN, ([|v1|],[|v2|]))] ]]$.
+        \item Case $[[v]] = [[ep r]]$. Since all raw irreducibles are themselves irreducible,
+            our inductive hypothesis gives that
+            $[[ [|r|] (\ x . let x1 := pi1 x in let x2 := pi2 x in MEET [ [|ep|],x1, (\y . k [(y,x2)]) ] )]]$
+            steps to $[[(\ x . let x1 := pi1 x in let x2 := pi2 x in MEET [ [|ep|],x1, (\y . k [(y,x2)]) ] )[ [|r|] ] ]]$.
+            By \autoref{lem:canonical-trans}, $[[ [|r|] ]]$ is of the form
+            $[[(DYN, u)]]$ for some $[[u]]$.
+            So we can then $\beta$-reduce and apply the let-substitutions to reach $[[ MEET[ [|ep|], DYN, u ]  ]]$.
+            By \autoref{TODO}, this steps to $[[([|ep|], u)]]$.
+            By the rule TransformEv, this means that $[[ [|ep r|] ]]$ also steps to this value. 
+
+
+        TODO
+    \end{itemize}
+\end{proof}
+
+\begin{lemma}[Translation Commutes With Substitution]
+    $[[ [|[x |=> v]e|]k -->* [x |=> [|v|] ][|e|]k   ]]$.
+    \end{lemma}
+    \begin{proof}
+        Follows from straightforward induction on $[[e]]$, combined with \autoref{lem:value-expr-trans}
+        for the case where $[[e]]=[[x]]$.
+    \end{proof}
+
+\begin{theorem}[Weak Simulation] 
+
+    If $[[e1 --> e2]]$, then for all $[[k]]$, $[[ [|e1|]k -->* [|e2|]k  ]]$.
+
+\end{theorem}
+\begin{proof}
+    We perform induction on the derivation tree of $[[e1 --> e2]]$.
+
+    \begin{itemize}
+        \item 
+        RedIfTrue: then $[[e1]]=[[if true then e2 else e3]]$. 
+        The translation $[[ [|true|]k' ==== k' [(DYN, true)]  ]]$ for any $[[k']]$,
+        so $[[ [|if true then e2 else e3|]k ]]$ is
+        $[[(\ x0 . let x := pi2 x0 in if x ([|e2|]k) ([|e3|]k) ) [(DYN, true)]  ]]$.
+        We can $\beta$-reduce to get $[[let x := pi2 (DYN, true) in if x [|e2|]k [|e3|]k ]]$,
+        and we can substitute $[[true]]$ for $[[x]]$ and reduce the $\ottkw{if}$ to get $[[ [|e2|]k ]]$.
+        
+        \item RedIfFalse: symmetric to RedIfTrue
+        
+        \item RedIfEv: $[[e1]]=[[if ep b then e2' else e3']]$.
+        We know that $[[ [| b|]k' ==== k' [(DYN, b)] ]]$,
+        so $[[ [| ep b |]k'' ==== (\x. let x1 = pi1 x in let x2 = pi2 x in MEET[ [|ep|], x1, (\y.k''[(y,x2)]) ] )[(DYN,b)] ]]$.
+        We can $\beta$-reduce, and substitute with the let-expressions, to get
+        $[[(\x.  MEET[ [|ep|], DYN, (\y.k''[(y,b)]) ] )]]$.
+        However, $[[ep /\ ? ==== ?]]$, so by \autoref{TODO} this reduces to $[[k [([|ep|], b)] ]]$. 
+        Since the translation of $\ottkw{if}$ ignores any evidence in the condition,
+        we can use the same reasoning from RedIfTrue to show that it steps to $[[e2]]$ if $[[b]]$ is true, and $[[e3]]$ if $[[b]]$ is false.
+         
+        \item RedApp: TODO translation commutes with substitution.
+    \end{itemize}
+\end{proof}
+ 
+\section{Incorrectness}
 
 \end{document}

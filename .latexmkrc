@@ -27,6 +27,11 @@ sub call_ott {
   system("$ott_bin", '-colour', 'false', '-i', './GTFL.ott', '-tex_filter', $tex, $outname);
 }
 
+sub gen_ott_tex {
+  system("$rm",  './GTFL_defns.tex');
+  system("$ott_bin",  '-o', 'GTFL_defns.tex', '-tex_wrap', 'false', '-tex_show_meta', 'false', '-i', 'GTFL.ott',);
+}
+
 sub fix_synctex {
   my $base = shift @_; 
   run ["gunzip", "./$base.synctex.gz"];
@@ -50,6 +55,7 @@ sub mylatex {
   
  
   # Run the preprocessor
+  gen_ott_tex();
   call_ott($tex,  "$base-filtered.tex");
   # Run pdflatex
   # my $return = system("$engine",  @_, "--jobname=$base", "$base-filtered.tex");

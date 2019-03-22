@@ -1,6 +1,6 @@
 % !Ott debug
 % !Ott output ./GTFL.tex
-% !Ott binary /home/joey/GitHub/ott/bin/ott 
+% !Ott binary /home/joey/GitHub/ott/bin/ott -tex_wrap false
 
 embed {{tex-wrap-pre
 \documentclass[11pt]{article}
@@ -34,7 +34,7 @@ embed {{tex
 
 
 metavar x, y, z, c  ::= {{com Symbols from some infinite set}}
-  {{ tex \mathit{[[x]]} }}  {{ texvar \mathsf{[[x]]} }} {{ lex alphanum }}
+  {{ tex \mathit{[[x]]} }}  {{ texvar \mathtt{ [[x]] } }} {{ lex alphanum }}
 
 indexvar i  ::= {{com Indices (ott artifact, please ignore)}}
   {{ tex [[i]] }}  {{ texvar [[i]] }} {{ lex num }}
@@ -42,13 +42,14 @@ indexvar i  ::= {{com Indices (ott artifact, please ignore)}}
 
 grammar
 
-n  :: Integer ::= {{com Integers }}
+n  :: Natural ::= {{com Natural Numbers }}
   |  n1 :+: n2  :: M :: Plus {{tex [[n1]]+[[n2]]}} %TODO color
-  | DYN :: M :: Dyn
-  | BOOL :: M :: Bool
-  | NAT :: M :: Nat
-  | ARR :: M :: Arr
-  | PROD :: M :: Prod
+  | DYN :: M :: Dyn {{tex \mathtt{ DYN } }}
+  | BOOL :: M :: Bool {{tex \mathtt{BOOL } }}
+  | NAT :: M :: Nat {{tex \mathtt{NAT } }}
+  | ARR :: M :: Arr {{tex \mathtt{ARROW } }}
+  | PROD :: M :: Prod {{tex \mathtt{PRODUCT } }}
+  | 0 :: M :: Zero
 
 b {{tex b}} :: Boolean ::= {{ com Booleans }}
   | true :: :: True
@@ -58,22 +59,22 @@ b {{tex b}} :: Boolean ::= {{ com Booleans }}
 e :: e ::= 
   | x :: :: Var {{com Variables}}
   | b :: :: Bool {{com Booleans }}
-  | n :: :: Nat {{com Number}}
-  | \ x : T . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
+  | n :: :: Nat {{com Natural Numbers }}
+  | \ x : T . e :: :: Lam {{com Functions }} 
   | e1 $ e2 :: :: App {{com Function Application}} {{tex [[e1]]\ [[e2]]}}
-  | e1 + e2 :: :: Plus
-  | e1 == e2 :: :: Eq
-  | if e1 then e2 else e3 :: :: If {{com Conditionals}} {{tex \ottkw{if}\ [[e1]]\ \ottkw{then}\ [[e2]]\ \ottkw{else}\ [[e3]]}}
-  | ( e1 , e2 ) :: :: Pair
-  | pi1 e :: :: Proj1 {{tex \pi_1 [[e]]}}
-  | pi2 e :: :: Proj2 {{tex \pi_2 [[e]]}}
+  | e1 + e2 :: :: Plus {{com Addition}}
+  | e1 == e2 :: :: Eq {{com Number Equality Test}}
+  | if e1 then e2 else e3 :: :: If {{com Conditionals}} % {{tex \ottkw{if}\ [[e1]]\ \ottkw{then}\ [[e2]]\ \ottkw{else}\ [[e3]]}}
+  | ( e1 , e2 ) :: :: Pair {{com Tuples}} {{tex \langle [[e1]], [[e2]] \rangle}}
+  | pi1 e :: :: Proj1  {{com Tuple First Projection}}
+  | pi2 e :: :: Proj2  {{com Tuple Second Projection}}
   | pi @ i e :: M :: Proji {{tex \pi_{[[i]]} [[e]] }}
   | e @ i :: M :: Expri {{tex [[e]]_{[[i]]} }}
-  | ep e :: :: Ascr
-  | error :: :: Err
+  | ep e :: :: Ascr {{com Evidence Ascription}}
+  | error :: :: Err {{com Runtime Type Error}}
   | ( e ) :: M :: Parens {{tex ([[e]]) }} 
   | [ x |=> e1 ] e2 :: M :: Subst {{tex  [ [[e1]] / [[x]] ] [[e2]] }}
-  | C [ e ] :: :: Context 
+  | C [ e ] :: M :: Context 
   | eval ( e ) :: M :: Eval
   | 120 :: M :: Num120
   | 5 :: M :: Num5
@@ -83,36 +84,36 @@ e :: e ::=
   | 0 :: M :: Num0
   | 1 :: M :: Num1
   | e e1 ... ei :: M :: MApp
-  | ( e1 , .... ,  ei ) :: M :: PairMany
+  % | ( e1 , .... ,  ei ) :: M :: PairMany
 
 
-O :: Observable ::= {{com Observable values: booleans or well-formed natural numbers}}
+O :: Observable ::= {{com Observable values}}
   | b :: :: Bool
   | n :: :: Nat
 
-r {{tex r}} :: Raw ::= {{com Raw Irreducable (not necessarily observable) values}}
+r {{tex r}} :: Raw ::= {{com Raw Irreducable (closed) terms (i.e. not ascribed with)}}
   | b :: :: Bool
   | n :: :: Nat
   | \ x : T . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
   | ( v1 , v2 ) :: :: Pair
-  | ( r1 , .... ,  ri ) :: M :: PairMany
+  % | ( r1 , .... ,  ri ) :: M :: PairMany
 
-v {{tex v}} :: Irr ::= {{com Irreducable (not necessarily observable) values}}
+v {{tex v}} :: Irr ::= {{com Irreducable (closed) terms }}
   | ep r :: :: Ascr
   | b :: :: Bool 
   | n :: :: Nat
   | \ x : T . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
   | ( v1 , v2 ) :: :: Pair
-  | ( v1 , .... ,  vi ) :: M :: PairMany
+  % | ( v1 , .... ,  vi ) :: M :: PairMany
 
 ep {{tex \varepsilon}} :: Evidence ::= 
-  | << T >> :: :: Ev {{tex \langle [[T]] \rangle}}
+  | << T >> :: :: Ev {{tex \{ [[T]] \} }}
   | ep1 /\ ep2 :: M :: Meet
   | dom ep :: M :: Dom
   | cod ep :: M :: Cod
   | Proj1 ep :: M :: Left
   | Proj2 ep :: M :: Right
-  | Proj @ i ep :: M :: Proji
+  | Proj @ i ep :: M :: Proji {{tex \ottkw{Proj}_{[[i]]} [[ep]] }}
 
 T :: Type ::= {{com Types}}
   | Nat :: :: Nat {{tex \mathsf{Nat} }}
@@ -126,6 +127,7 @@ T :: Type ::= {{com Types}}
   % | right T :: M :: Right   
   | ( T ) :: M :: Parens {{tex ([[T]])}}
   | [ T ] :: M :: Implicit {{ tex [[T]] }}
+  % | T1 /\ T2 :: M :: Meet 
 
 Gamma {{tex \Gamma}} :: Gamma ::= {{com Environments}}
   | empty :: :: Empty {{tex \cdot}}
@@ -150,33 +152,46 @@ u , k :: CPSValue ::=
   | x :: :: Var
   | n :: :: Nat
   | b :: :: Bool
-  |  \ x1 ... xi . t  :: :: Fun
-  | ( u1 , u2 ) :: :: Pair
+  | fix x u :: :: Fix
+  |  \ x1 ... xi . t  :: :: Fun 
+  | ( u1 , u2 ) :: :: Pair {{tex \langle [[u1]], [[u2]]\rangle }}
   | ( u ) :: M :: Parens
-  | MEET :: M :: MeetFun
-  | DOM ::  M :: DomFun
-  | COD :: M :: CodFun
-  | PROD1 :: M :: Prod1
-  | PROD2 :: M :: Prod2
-  | PROD @ i :: M :: Prodi
+  | MEET :: M :: MeetFun {{tex \mathtt{MEET } }}
+  | DOM ::  M :: DomFun {{tex \mathtt{DOM } }}
+  | COD :: M :: CodFun {{tex \mathtt{COD } }}
+  | PROD1 :: M :: Prod1 {{tex \mathtt{PROD}_1 }}
+  | PROD2 :: M :: Prod2 {{tex \mathtt{PROD}_2 }}
+  | PROD @ i :: M :: Prodi {{tex \mathtt{PROD}_{[[i]]} }}
+  | [| ep |] :: M :: TTrans
+  | [| v |] :: M :: VTrans
 
 d :: CPSDecl ::=
-  | x = u :: :: Def
-  | x = pi1 u :: :: Proj1
-  | x = pi2 u :: :: Proj2
-  | x = u1 + u2 :: :: Plus
-  | x = u1 == u2 :: :: Eq
-  | x = pi @ i u :: M :: Proji
+  | x := u :: :: Def
+  | x := pi1 u :: :: Proj1
+  | x := pi2 u :: :: Proj2
+  | x := u1 + u2 :: :: Plus
+  | x := u1 == u2 :: :: Eq
+  | x := pi @ i u :: M :: Proji
 
 
 t :: CPS ::= 
   | v :: :: Value 
   | let d in t :: :: Let
-  | u' [ u1 , ... , ui ] :: :: App
-  | if u t1 t2 :: :: If
+  | u [ arg ] :: :: App {{tex [[u]]([[arg]])}} 
+  | if u t1 t2 :: :: If {{tex \ottkw{ if }\ [[u]]\ \ottkw{ then }\ [[t1]]\ \ottkw{ else }\ [[t2]] }}
   | halt [ u ] :: :: ReturnHalt
   | error :: :: ErrorHalt
-  | ( t ) :: M :: Parens
+  | ( t ) :: M :: Parens 
+  | [| e |] k :: M :: Translation
+  | [ x |=> u ] t :: M :: Subst {{tex  [ [[u]] / [[x]] ] [[t]] }}
+  | \\ :: M :: Newline {{tex \\ }}
+  | -- t :: M :: Indent {{tex \qquad [[t]] }}
+  | * :: M :: Blank {{tex }} 
+  | iif u t1 :: M :: OnearmIf {{tex \ottkw{ if }\ [[u]]\ \ottkw{ then }\ [[t1]]\ }}
+  | else t :: M :: Else {{tex \ottkw{ else }\ [[t]]  }}
+
+arg :: Arg ::=
+  | u1 , ... , ui :: :: Seq
 
 
 terminals :: 'terminals_' ::=
@@ -192,6 +207,15 @@ terminals :: 'terminals_' ::=
   | Proj1 :: :: Proj1 {{tex \ottkw{Proj}_1 }}
   | Proj2 :: :: Proj2 {{tex \ottkw{Proj}_2 }}
   | elem :: :: Elem {{tex \in}}
+  | == :: :: TestEq {{tex \stackrel{?}{=} }}
+  | pi1 :: :: Pi1 {{tex \pi_1}}
+  | pi2 :: :: Pi2 {{tex \pi_2}}
+  | \ :: :: Lam {{tex \lambda }}
+  | . :: :: Ldot {{tex \ldotp }}
+  | [| :: :: LScott {{tex \llbracket}}
+  | |] :: :: RScott {{tex \rrbracket}}
+  | ==== :: :: LongEq {{tex = }}
+
 
 formula :: 'formula_' ::=
     % | formula \\\\ :: :: lbh {{ tex [[formula]] \ottlinebreakhack }}
@@ -231,6 +255,10 @@ if true then e1 else e2 --> e1
 
 ----------------------------------------- :: IfFalse
 if false then e1 else e2 --> e2
+
+if b then e1 else e2 --> e
+----------------------------------------- :: IfEv
+if ep b then e1 else e2 --> e
 
 ----------------------------------------- :: App
 (\ x : T . e) v  --> [ x |=> v ] e
@@ -325,7 +353,7 @@ by
 
   Gamma |- e1 : Nat
   Gamma |- e2 : Nat
-  -------------- :: Bool
+  -------------- :: Eq
   Gamma |- e1 == e2 : Nat
 
 
@@ -394,66 +422,108 @@ T2 /\ T2' ==== T2''
 T1 * T2 /\ T1' * T2' ==== T1'' * T2'' 
 
 defn
-[[ e ]] k ==== t :: :: Transform :: Transform
+[| v |]  ==== u :: :: ValTransform :: ValTransform  {{com CPS Translation of Closed Values}}
 by
 
----------------------------- :: Var
-[[x]] k ==== k[x]
 
 ---------------------------- :: Bool
-[[b]] k ==== k [(DYN, b)]
+[|b|]  ==== (DYN, b)
 
 
 ---------------------------- :: Num
-[[n]] k ==== k [(DYN, n)]
+[|n|] ==== (DYN, n)
 
-c fresh
-[[e]] c ==== t
+[|e|] c ==== t
 ---------------------------- :: Fun
-[[ (\ x : T . e) ]] k ==== k [(DYN, \ x c . t )]
+[| \ x : T . e |]  ==== (DYN, \ x c . t )
 
-k1 := ( \x2 . let y1 = pi1 x1 in let z1 = pi2 x1 in let y2 = pi1 x2 in let z2 = pi2 x2 in t1 )
-t1 := DOM [y1, \y1' . DOM [ y1, \y1''. MEET [y1', y2, (\ y3 . z1 [(y3, z2), (\z3 . k [(y1'', z3)] ) ] )]]]
-[[e2]] k1 ==== t'
-[[e1]] (\ x1 . t' ) ==== t
----------------------------- :: App
-[[ e1 e2 ]] k ==== t
 
-k1 := ( \x2 . let z1 = pi2 x1 in let z2 = pi2 x2 in let z3 = z1 + z2 in k [z3] )
-[[e2]] k1 ==== t'
-[[e1]] (\ x1 . t' ) ==== t
----------------------------- :: Plus
-[[ e1 + e2 ]] k ==== t
+---------------------------- :: Pair
+[| (v1, v2) |]  ==== (DYN, ([|v1|], [|v2|]) )
 
-k1 := ( \x2 . let z1 = pi2 x1 in let z2 = pi2 x2 in let z3 = z1 == z2 in k [z3] )
-[[e2]] k1 ==== t'
-[[e1]] (\ x1 . t' ) ==== t
----------------------------- :: Eq
-[[ e1 + e2 ]] k ==== t
-
-[[e2]] (\ x2 . k [(DYN, (x1, x2))] ) ==== t'
-[[e1]] (\ x1 . t' ) ==== t
----------------------------- ::Pair
-[[ e1 + e2 ]] k ==== t
-
-[[e1]] k ==== t1
-[[e2]] k ==== t2
-[[e0]] (\ x0 . let x = pi2 x0 in if x t1 t2 ) ==== t
----------------------------- :: If
-[[ if e0 then e1 else e2 ]] k ==== t
-
-[[e]] (\ x . let x' = pi@i x in k [x'] ) ==== t
----------------------------- ::Pair
-[[ pi @ i e ]] k ==== t
-
-[[ep]] ==== u
-[[e]] (\ x . let x1 = pi1 x in let x2 = pi2 x in MEET [u,x1, (\y . k [(y,x2)]) ] ) ==== t
----------------------------- ::Ev
-[[ ep  e ]] k ==== t
+[| r |] ==== (DYN, u)
+---------------------------- :: Ev
+[| ep r |]  ==== ([|ep|], u )
 
 defn
-[[ ep ]]  ==== u :: :: EvTransform :: EvTransform
+[| e |] k ==== t :: :: Transform :: Transform  {{com CPS Translation of Expressions}}
+by
+
+---------------------------- :: Var
+[|x|] k ==== k[x]
+
+---------------------------- :: Bool
+[|b|] k ==== k [(DYN, b)]
+
+
+---------------------------- :: Num
+[|n|] k ==== k [(DYN, n)]
+
+[|e|] c ==== t
+---------------------------- :: Fun
+[| (\ x : T . e) |] k ==== k [(DYN, \ x c . t )]
+
+k1 := ( \x2 . let y1 := pi1 x1 in let z1 := pi2 x1 in let y2 := pi1 x2 in let z2 := pi2 x2 in t1 )
+t1 := DOM [y1, \y1' . COD [ y1, \y1''. MEET [y1', y2, (\ y3 . z1 [(y3, z2), (\z3 . k [(y1'', z3)] ) ] )] ] ]
+[|e2|] k1 ==== t'
+[|e1|] (\ x1 . t' ) ==== t
+---------------------------- :: App
+[| e1 e2 |] k ==== t
+
+k1 := ( \x2 . let z1 := pi2 x1 in let z2 := pi2 x2 in let z3 := z1 + z2 in k [z3] )
+[|e2|] k1 ==== t'
+[|e1|] (\ x1 . t' ) ==== t
+---------------------------- :: Plus
+[| e1 + e2 |] k ==== t
+
+k1 := ( \x2 . let z1 := pi2 x1 in let z2 := pi2 x2 in let z3 := z1 == z2 in k [z3] )
+[|e2|] k1 ==== t'
+[|e1|] (\ x1 . t' ) ==== t
+---------------------------- :: Eq
+[| e1 + e2 |] k ==== t
+
+[|e2|] (\ x2 . k [(DYN, (x1, x2))] ) ==== t'
+[|e1|] (\ x1 . t' ) ==== t
+---------------------------- ::Pair
+[| (e1, e2) |] k ==== t
+
+[|e1|] k ==== t1
+[|e2|] k ==== t2
+[|e0|] (\ x0 . let x := pi2 x0 in if x t1 t2 ) ==== t
+---------------------------- :: If
+[| if e0 then e1 else e2 |] k ==== t
+
+[|e|] (\ x . let x' := pi@i x in k [x'] ) ==== t
+---------------------------- ::Proj
+[| pi @ i e |] k ==== t
+
+[|e|] (\ x . let x1 := pi1 x in let x2 := pi2 x in MEET [ [|ep|],x1, (\y . k [(y,x2)]) ] ) ==== t
+---------------------------- ::Ev
+[| ep  e |] k ==== t
+
+---------------------------- ::Err
+[| error |] k ==== error
+
+defn
+[| ep |]  ==== u :: :: EvTransform :: EvTransform % {{tex \llbracket [[ep]] \rrbracket = [[u]] }}
 by
 
 ------------------ :: Bool
-[[<<Bool>>]] ==== BOOL
+[|<<Bool>>|] ==== (BOOL, 0)
+
+------------------ :: Nat
+[|<<Nat>>|] ==== ( NAT , 0)
+
+------------------ :: Dyn
+[|<<?>>|] ==== ( DYN , 0)
+
+----------------- :: Arr
+[|<<T1 -> T2>>|] ==== (ARR, ([|<<T1>>|], [|<<T2>>|]))
+
+----------------- :: Prod
+[|<<T1 -> T2>>|] ==== (PROD, ( [|<<T1>>|], [|<<T2>>|]))
+
+
+defn
+t1  -->* t2 :: :: KStep :: KStep % {{tex \llbracket [[ep]] \rrbracket = [[u]] }}
+by
