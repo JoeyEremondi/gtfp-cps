@@ -1,6 +1,8 @@
 #For capturing stdout and stderr
 use IPC::Run 'run';
 
+$ENV{'TEXINPUTS'}='';
+
 # Use subroutine to do preprocessing and running pdflatex
 $pdflatex = 'internal mypdflatex %B %O';
 $xelatex = 'internal myxelatex %B %O';
@@ -28,8 +30,8 @@ sub call_ott {
 }
 
 sub gen_ott_tex {
-  system("$rm",  './GTFL_defns.tex');
-  system("$ott_bin",  '-o', 'GTFL_defns.tex', '-tex_wrap', 'false', '-tex_show_meta', 'false', '-i', 'GTFL.ott',);
+  # system("rm",  './GTFL_defns.tex');
+  system("$ott_bin", '-i', 'GTFL.ott', '-o', 'GTFL_defns.tex', '-tex_wrap', 'false', '-tex_show_meta', 'false', );
 }
 
 sub fix_synctex {

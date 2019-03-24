@@ -1,0 +1,171 @@
+% !TeX root = beamer.tex
+%!TeX spellcheck = en-US
+
+\documentclass[10pt]{beamer}  
+
+\usepackage{iftex}
+% \ifPDFTeX{\PackageError{Latexmk}{Not in XeLatex}{Should be in XeLaTeX for proper font rendering }}\else\fi
+
+
+\usepackage{amsmath,amssymb}
+\usepackage{supertabular}  
+% \usepackage[
+%      includeheadfoot, head=13pt, foot=2pc,
+%      paperwidth=6.75in, paperheight=10in,
+%      top=58pt, bottom=44pt, inner=46pt, outer=46pt,
+%      marginparwidth=2pc,heightrounded
+% ]{geometry}
+\usepackage{geometry}
+\usepackage{ifthen} 
+% \usepackage{pdflscape} 
+% \usepackage{alltt}%hack 
+% \geometry{a4paper,dvips,twoside,left=22.5mm,right=22.5mm,top=20mm,bottom=30mm}
+\usepackage{color}    
+\usepackage{mathpartir}  
+\usepackage{stmaryrd}   
+
+% \usepackage{libertinust1math}
+
+\usepackage{keyval}
+\usepackage{ifthen} 
+\usepackage{enumitem}   
+
+\usepackage{amsthm}
+\usepackage{hyperref} 
+
+% \newcommand*{\lemmaautorefname}{Lemma}
+
+\newcommand{\abe}{\ensuremath{\alpha\beta\eta}}
+
+\usepackage[implicitPremiseBreaks]{ottalt}  
+\inputott{GTFL_defns}       
+ 
+\newcommand{\rrule}[1]{\rref*{#1}}
+
+
+   
+\usetheme[progressbar=frametitle]{metropolis} 
+  
+\definecolor{ubcBlue}{RGB}{12,35,68}
+\definecolor{ubcBlue1}{RGB}{0,85,183} 
+\definecolor{ubcBlue2}{RGB}{0,167,225}
+\definecolor{ubcBlue3}{RGB}{64,180,229}
+\definecolor{ubcBlue4}{RGB}{110,196,232} 
+\definecolor{ubcBlue5}{RGB}{151,212,223} 
+
+% \setbeamercolor{normal text}{bg=ubcBlue1}
+\setbeamercolor{alerted text}{bg=ubcBlue1, fg = ubcBlue}
+\setbeamercolor{example text}{fg=ubcBlue1, bg=ubcBlue1}
+\setbeamercolor{title separator}{fg = ubcBlue, bg=ubcBlue}
+\setbeamercolor{progress bar}{bg=ubcBlue4, fg=ubcBlue1}
+\setbeamercolor{progress bar in head/foot}{bg=ubcBlue4, fg=ubcBlue1}
+\setbeamercolor{progress bar in section page}{bg=ubcBlue4, fg=ubcBlue1}
+\setbeamercolor{frametitle}{bg=ubcBlue}
+
+
+\usepackage{appendixnumberbeamer}
+
+\usepackage{booktabs}
+\usepackage[scale=2]{ccicons}
+
+\usepackage{pgfplots}
+\usepgfplotslibrary{dateplot}
+
+\usepackage{xspace}
+\newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
+
+
+\makeatletter
+\newsavebox{\mybox}
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip%
+  \savebox{\mybox}{%
+      \begin{beamercolorbox}[%
+          wd=\paperwidth,%
+          sep=0pt,%
+          leftskip=\metropolis@frametitle@padding,%
+          rightskip=\metropolis@frametitle@padding,%
+        ]{frametitle}%
+      \metropolis@frametitlestrut@start\insertframetitle\metropolis@frametitlestrut@end%
+      \end{beamercolorbox}%
+    }
+  \begin{beamercolorbox}[%
+      wd=\paperwidth,%
+      sep=0pt,%
+      leftskip=\metropolis@frametitle@padding,%
+      rightskip=\metropolis@frametitle@padding,%
+    ]{frametitle}%
+  \metropolis@frametitlestrut@start\insertframetitle\metropolis@frametitlestrut@end%
+  \hfill%
+  \raisebox{-\metropolis@frametitle@padding}{\includegraphics[height=\dimexpr\ht\mybox+\metropolis@frametitle@padding\relax]{2_2016_UBCNarrow_Signature_ReverseCMYK}}%
+    \hspace*{-\metropolis@frametitle@padding}
+  \end{beamercolorbox}%
+}
+\makeatother
+
+\title{A CPS Transformation for Gradual Programs with Evidence}
+\subtitle{CPSC 539B Final Project}
+% \date{\today}
+\date{}
+\author{Joey Eremondi}
+% \institute{Center for modern beamer themes}
+% \titlegraphic{\hfill\includegraphics[height=1.5cm]{logo.pdf}}
+
+\begin{document}
+
+\maketitle
+
+% \begin{frame}{Table of contents}
+%   \setbeamertemplate{section in toc}[sections numbered]
+%   \tableofcontents[hideallsubsections]
+% \end{frame}
+
+\section{Source Language}
+
+\begin{frame}[fragile]{Term Syntax}
+
+  \nonterms{e,}
+\end{frame}
+
+\begin{frame}[fragile]{Type Syntax}
+
+  \nonterms{T}
+  \nonterms{ep}
+\end{frame}
+
+\begin{frame}[fragile]{Type Rules}
+  \begin{mathpar}
+  \ottdruleHastypeAscr{} \\ 
+  \ottdruleConsistentEv{} 
+  \end{mathpar}
+\end{frame}
+
+\begin{frame}[fragile]{Combining Evidence}
+  \ottdefnMeet{}                                            
+\end{frame}
+
+\begin{frame}[fragile]{Semantics}
+  \begin{mathpar}
+    \ottdruleRedAscr{} \\
+    \ottdruleRedAscrFail{}\\
+    \ottdruleRedAppEv{}\\
+    \ottdruleRedAppEvFail{}  
+    \end{mathpar}                                          
+\end{frame}
+ 
+\begin{frame}[fragile]{Examples}
+  $[[ <<Int>>(<<Bool>>true) + 0 ]]$ typechecks!
+
+  $[[<<Bool>> |- Bool ~=~ ?]]$ and $[[<<Int>> |- ? ~=~ Bool]]$
+
+  But: fails at runtime!   
+
+  $[[Int /\ Bool]]$ undefined
+
+  
+                                       
+\end{frame}
+ 
+
+\end{document}
+

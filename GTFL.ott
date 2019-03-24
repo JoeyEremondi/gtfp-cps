@@ -114,6 +114,7 @@ ep {{tex \varepsilon}} :: Evidence ::=
   | Proj1 ep :: M :: Left
   | Proj2 ep :: M :: Right
   | Proj @ i ep :: M :: Proji {{tex \ottkw{Proj}_{[[i]]} [[ep]] }}
+  | ( ep ) :: M :: Parens
 
 T :: Type ::= {{com Types}}
   | Nat :: :: Nat {{tex \mathsf{Nat} }}
@@ -189,6 +190,7 @@ t :: CPS ::=
   | * :: M :: Blank {{tex }} 
   | iif u t1 :: M :: OnearmIf {{tex \ottkw{ if }\ [[u]]\ \ottkw{ then }\ [[t1]]\ }}
   | else t :: M :: Else {{tex \ottkw{ else }\ [[t]]  }}
+  | ,,, :: M :: Ldots {{tex \ldots}}
 
 arg :: Arg ::=
   | u1 , ... , ui :: :: Seq
@@ -264,14 +266,14 @@ if ep b then e1 else e2 --> e
 (\ x : T . e) v  --> [ x |=> v ] e
 
 ----------------------------------------- :: AppEv
-(ep1 (\ x : T . e)) (ep2 r)  --> cod ep2 ([ x |=> dom ep1 /\ ep2 r ] e)
+(ep1 (\ x : T . e)) (ep2 r)  --> (cod ep2) ([ x |=> (dom ep1 /\ ep2) r ] e)
 
 dom ep1 /\ ep2 undefined
 ----------------------------------------- :: AppEvFail
 (ep1 (\ x : T . e)) (ep2 r)  --> error
 
 ----------------------------------------- :: AppEvPartial
-(ep (\ x : T . e1)) r  --> cod ep([ x |=> dom ep e2 ] e1)
+(ep (\ x : T . e1)) r  --> (cod ep)([ x |=> (dom ep) e2 ] e1)
 
 ----------------------------------------- :: Plus
 n1 + n2  --> n1 :+: n2
@@ -310,11 +312,11 @@ pi@i (ep (e1 , e2)) --> Proj@i ep e_i
 
 
 ------------------------------------------ :: Ascr
-ep1 (ep2 e) --> ep1 /\ ep2 e
+ep1 (ep2 e) --> (ep1 /\ ep2) e
 
 ep1 /\ ep2 undefined
 ------------------------------------------ :: AscrFail
-ep1 (ep2 e) --> ep1 /\ ep2 e
+ep1 (ep2 e) --> error
 
 e1 --> e2
 ------------------------------------------ :: Context
@@ -457,14 +459,14 @@ by
 
 
 ---------------------------- :: Num
-[|n|] k ==== k [(DYN, n)]
+[|n|] k ==== k [(DYN, n)] 
 
 [|e|] c ==== t
 ---------------------------- :: Fun
 [| (\ x : T . e) |] k ==== k [(DYN, \ x c . t )]
 
 k1 := ( \x2 . let y1 := pi1 x1 in let z1 := pi2 x1 in let y2 := pi1 x2 in let z2 := pi2 x2 in t1 )
-t1 := DOM [y1, \y1' . COD [ y1, \y1''. MEET [y1', y2, (\ y3 . z1 [(y3, z2), (\z3 . k [(y1'', z3)] ) ] )] ] ]
+t1 := DOM [y1, \y1' . COD [ y1, \y1''. MEET [y1', y2, (\ y3 . z1 [(y3, z2), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')]) ] ) ] )] ] ] 
 [|e2|] k1 ==== t'
 [|e1|] (\ x1 . t' ) ==== t
 ---------------------------- :: App
