@@ -3,7 +3,7 @@
 
 \documentclass[10pt]{beamer}   
 
-\usepackage{iftex}
+\usepackage{iftex} 
 % \ifPDFTeX{\PackageError{Latexmk}{Not in XeLatex}{Should be in XeLaTeX for proper font rendering }}\else\fi
 
 
@@ -154,18 +154,69 @@
 \end{frame}
  
 \begin{frame}[fragile]{Examples}
-  $[[ <<Int>>(<<Bool>>true) + 0 ]]$ typechecks!
 
-  $[[<<Bool>> |- Bool ~=~ ?]]$ and $[[<<Int>> |- ? ~=~ Bool]]$
-
-  But: fails at runtime!   
-
-  $[[Int /\ Bool]]$ undefined
+  \begin{itemize}
+    \item 
+    $[[ <<Nat>>(<<Bool>>true) + 0 ]]$ typechecks!
+    
+    \item $[[<<Bool>> |- Bool ~=~ ?]]$ and $[[<<Nat>> |- ? ~=~ Bool]]$
+    
+    \item But: fails at runtime!   
+    
+    \item $[[ Nat ]] \sqcap [[ Bool ]]$ undefined
+  \end{itemize}
 
   
                                        
 \end{frame}
+
+\section{The Target}
+
+\begin{frame}[fragile]{Simplified $\lambda^K$}
+
+  \begin{minipage}{0.45\textwidth}
+  \nonterms{u}
+  \nonterms{d}
+  \end{minipage}
+  \begin{minipage}{0.45\textwidth}
+  \nonterms{t}
+  \nonterms{arg}
+  \end{minipage}
+\end{frame}
+
+
+\section{The Translation}
+\begin{frame}[fragile]{Translating Evidence}
+  Integer constants $[[BOOL]],[[NAT]],[[ARR]],[[PROD]],[[DYN]]$
+
+  \ottdefnEvTransform{}
+\end{frame}
+
+\begin{frame}[fragile]{Evidence Operations}
+  \begin{itemize}
+    \item $[[MEET[u1, u2, k] ]]$
+    \item Combines evidence representation $[[u1]]$ and $[[u2]]$, gives result to $[[k]]$
+    \item Passes control $[[error]]$ continuation if meet undefined
+    \item Similar for $[[DOM]]$, $[[COD]]$ to decompose function types
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Translating Values}
+
+  \ottdefnValTransform{} 
+\end{frame}
+
+\begin{frame}[fragile]{Translating Applications}
+
+  \begin{mathpar}
+    \ottdruleTransformApp{} 
+  \end{mathpar}
+\end{frame}
+
  
+\section{Correctness}
+
+\section{Incorrectness}
 
 \end{document}
 

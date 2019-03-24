@@ -466,7 +466,8 @@ by
 [| (\ x : T . e) |] k ==== k [(DYN, \ x c . t )]
 
 k1 := ( \x2 . let y1 := pi1 x1 in let z1 := pi2 x1 in let y2 := pi1 x2 in let z2 := pi2 x2 in t1 )
-t1 := DOM [y1, \y1' . COD [ y1, \y1''. MEET [y1', y2, (\ y3 . z1 [(y3, z2), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')]) ] ) ] )] ] ] 
+t1 := DOM [y1, \y1' . COD [ y1, \y1''. MEET [y1', y2, (\ y3 . z1 [(y3, z2), (\z3 . t2) ] )] ] ] 
+t2 := let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')]) ] 
 [|e2|] k1 ==== t'
 [|e1|] (\ x1 . t' ) ==== t
 ---------------------------- :: App
@@ -507,7 +508,7 @@ k1 := ( \x2 . let z1 := pi2 x1 in let z2 := pi2 x2 in let z3 := z1 == z2 in k [z
 [| error |] k ==== error
 
 defn
-[| ep |]  ==== u :: :: EvTransform :: EvTransform % {{tex \llbracket [[ep]] \rrbracket = [[u]] }}
+[| ep |]  ==== u :: :: EvTransform :: EvTransform {{com CPS Representation of Runtime Evidence}} % {{tex \llbracket [[ep]] \rrbracket = [[u]] }}
 by
 
 ------------------ :: Bool

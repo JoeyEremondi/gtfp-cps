@@ -581,7 +581,8 @@
 
 \newcommand{\ottdruleTransformApp}[1]{\ottdrule[#1]{%
 \ottpremise{\ottnt{k_{{\mathrm{1}}}}  \ottsym{:=}  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{2}}}}  \ldotp  \ottkw{let} \, \mathit{y_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x_{{\mathrm{1}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z_{{\mathrm{1}}}}  \ottsym{:=}  \pi_2  \mathit{x_{{\mathrm{1}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{y_{{\mathrm{2}}}}  \ottsym{:=}  \pi_1  \mathit{x_{{\mathrm{2}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z_{{\mathrm{2}}}}  \ottsym{:=}  \pi_2  \mathit{x_{{\mathrm{2}}}} \, \ottkw{in} \, \ottnt{t_{{\mathrm{1}}}}  \ottsym{)}}%
-\ottpremise{\ottnt{t_{{\mathrm{1}}}}  \ottsym{:=}    \mathtt{DOM }  ( \mathit{y_{{\mathrm{1}}}}  \ottsym{,}  \lambda  \mathit{y'_{{\mathrm{1}}}}  \ldotp    \mathtt{COD }  ( \mathit{y_{{\mathrm{1}}}}  \ottsym{,}  \lambda  \mathit{y''_{{\mathrm{1}}}}  \ldotp    \mathtt{MEET }  ( \mathit{y'_{{\mathrm{1}}}}  \ottsym{,}  \mathit{y_{{\mathrm{2}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{y_{{\mathrm{3}}}}  \ldotp   \mathit{z_{{\mathrm{1}}}} (  \langle  \mathit{y_{{\mathrm{3}}}} ,  \mathit{z_{{\mathrm{2}}}} \rangle   \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{3}}}}  \ldotp  \ottkw{let} \, \mathit{z'_{{\mathrm{3}}}}  \ottsym{:=}  \pi_1  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z''_{{\mathrm{3}}}}  \ottsym{:=}  \pi_2  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \,   \mathtt{MEET }  ( \mathit{y''_{{\mathrm{1}}}}  \ottsym{,}  \mathit{z'_{{\mathrm{3}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{4}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z_{{\mathrm{4}}}} ,  \mathit{z''_{{\mathrm{3}}}} \rangle  )   \ottsym{)} )   \ottsym{)} )   \ottsym{)} )  )  ) }%
+\ottpremise{\ottnt{t_{{\mathrm{1}}}}  \ottsym{:=}    \mathtt{DOM }  ( \mathit{y_{{\mathrm{1}}}}  \ottsym{,}  \lambda  \mathit{y'_{{\mathrm{1}}}}  \ldotp    \mathtt{COD }  ( \mathit{y_{{\mathrm{1}}}}  \ottsym{,}  \lambda  \mathit{y''_{{\mathrm{1}}}}  \ldotp    \mathtt{MEET }  ( \mathit{y'_{{\mathrm{1}}}}  \ottsym{,}  \mathit{y_{{\mathrm{2}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{y_{{\mathrm{3}}}}  \ldotp   \mathit{z_{{\mathrm{1}}}} (  \langle  \mathit{y_{{\mathrm{3}}}} ,  \mathit{z_{{\mathrm{2}}}} \rangle   \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{3}}}}  \ldotp  \ottnt{t_{{\mathrm{2}}}}  \ottsym{)} )   \ottsym{)} )  )  ) }%
+\ottpremise{\ottnt{t_{{\mathrm{2}}}}  \ottsym{:=}  \ottkw{let} \, \mathit{z'_{{\mathrm{3}}}}  \ottsym{:=}  \pi_1  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z''_{{\mathrm{3}}}}  \ottsym{:=}  \pi_2  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \,   \mathtt{MEET }  ( \mathit{y''_{{\mathrm{1}}}}  \ottsym{,}  \mathit{z'_{{\mathrm{3}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{4}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z_{{\mathrm{4}}}} ,  \mathit{z''_{{\mathrm{3}}}} \rangle  )   \ottsym{)} ) }%
 \ottpremise{\llbracket  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k_{{\mathrm{1}}}}  =  \ottnt{t'}}%
 \ottpremise{\llbracket  \ottnt{e_{{\mathrm{1}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}}  \ldotp  \ottnt{t'}  \ottsym{)}  =  \ottnt{t}}%
 }{
@@ -701,7 +702,7 @@
 {\ottdrulename{EvTransformProd}}{}%
 }}
 
-\newcommand{\ottdefnEvTransform}[1]{\begin{ottdefnblock}[#1]{$\llbracket  \varepsilon  \rrbracket  =  \ottnt{u}$}{}
+\newcommand{\ottdefnEvTransform}[1]{\begin{ottdefnblock}[#1]{$\llbracket  \varepsilon  \rrbracket  =  \ottnt{u}$}{\ottcom{CPS Representation of Runtime Evidence}}
 \ottusedrule{\ottdruleEvTransformBool{}}
 \ottusedrule{\ottdruleEvTransformNat{}}
 \ottusedrule{\ottdruleEvTransformDyn{}}
