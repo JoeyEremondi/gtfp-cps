@@ -23,7 +23,7 @@
 \usepackage{color}    
 \usepackage{mathpartir}  
 \usepackage{stmaryrd}   
-
+   
 % \usepackage{libertinust1math}
 
 \usepackage{keyval}
@@ -110,6 +110,8 @@
 \author{Joey Eremondi}
 % \institute{Center for modern beamer themes}
 % \titlegraphic{\hfill\includegraphics[height=1.5cm]{logo.pdf}}
+
+\setbeamertemplate{itemize items}[circle]
 
 \begin{document}
 
@@ -216,7 +218,46 @@
  
 \section{Correctness}
 
+\begin{frame}[fragile]{Key Lemmas}
+  \begin{itemize}
+    \item $[[ MEET[ [|ep1|], [|ep2|], k ]   -->* k[ [|ep1 /\ ep2|] ]  ]]$
+    \item If $[[ep1 /\ ep2]]$ undefined, then $[[ MEET[ [|ep1|], [|ep2|], k ] -->* error ]]$
+    \item $[[ [|v|]k -->* k[ [|v|] ] ]]$
+    \item $[[ [|[x |=> v]e|]k -->* [x |=> [|v|] ][|e|]k   ]]$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Whole Program Correctness}
+  \begin{itemize}
+    \item 
+    If $[[e1 --> e2]]$, then for any $[[k]]$, $[[ [|e1|]k ]] \equiv [[ [|e2|]k ]]$
+
+    \item Defined in terms of equivalence $\equiv$, symmetric closure of $[[-->*]]$
+    
+    \item Simulation proved by induction on derivation of $[[e1 --> e2]]$
+    
+    \item Corollary: if $eval([[e1]])= [[v]]$, then $eval([[ [|e|](\ x . halt[x]) ]]) = [[halt[ [|v|] ] ]]$.
+  \end{itemize}
+\end{frame}
+
 \section{Incorrectness}
+
+\begin{frame}[fragile]{Type Preservation }
+  \begin{itemize}
+    \item No notion of consistency in target language
+    \item $[[(\ x : ? . x x)]]$ typeable in source
+    \item Translation has no type in target 
+    \item Possibly solved by combination of sum and recursive types
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Full Abstraction }
+  \begin{itemize}
+    \item $[[(\ x : Nat . x + 0 )]] \approx [[(\ x : Nat . (<<Nat>>x) + 0 )]]$
+    \item Distinguish by target context  $([[  __ (n,0)  ]])$ where $[[n]]\neq[[DYN]], [[n]] \neq [[NAT]]$
+    \item Only causes $[[error]]$ in second case
+  \end{itemize}
+\end{frame} 
 
 \end{document}
 

@@ -217,6 +217,7 @@ terminals :: 'terminals_' ::=
   | [| :: :: LScott {{tex \llbracket}}
   | |] :: :: RScott {{tex \rrbracket}}
   | ==== :: :: LongEq {{tex = }}
+  | __ :: :: Hole {{tex \square}}
 
 
 formula :: 'formula_' ::=

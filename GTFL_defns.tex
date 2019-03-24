@@ -94,18 +94,18 @@
 
 \newcommand{\ottC}{
 \ottrulehead{\ottnt{C}}{::=}{\ottcom{evaluation context}}\ottprodnewline
-\ottfirstprodline{|}{\ottkw{\_\_} \, \ottnt{e}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{v \, \ottkw{\_\_}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\ottsym{(} \, \ottkw{\_\_} \, \ottsym{,}  \ottnt{e}  \ottsym{)}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\ottsym{(}  v  \ottsym{,} \, \ottkw{\_\_} \, \ottsym{)}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\ottsym{(}  \pi_1 \, \ottkw{\_\_} \, \ottsym{)}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\ottsym{(}  \pi_2 \, \ottkw{\_\_} \, \ottsym{)}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\varepsilon \, \ottkw{\_\_}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\ottkw{\_\_} \, \ottsym{+}  \ottnt{e_{{\mathrm{1}}}}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{v  \ottsym{+} \, \ottkw{\_\_}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\ottkw{\_\_} \, \stackrel{?}{=}  \ottnt{e_{{\mathrm{1}}}}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{v  \stackrel{?}{=} \, \ottkw{\_\_}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\ottkw{if} \, \ottkw{\_\_} \, \ottkw{then} \, \ottnt{e_{{\mathrm{1}}}} \, \ottkw{else} \, \ottnt{e_{{\mathrm{2}}}}}{}{}{}{}}
+\ottfirstprodline{|}{\square \, \ottnt{e}}{}{}{}{}\ottprodnewline
+\ottprodline{|}{v \, \square}{}{}{}{}\ottprodnewline
+\ottprodline{|}{\ottsym{(} \, \square \, \ottsym{,}  \ottnt{e}  \ottsym{)}}{}{}{}{}\ottprodnewline
+\ottprodline{|}{\ottsym{(}  v  \ottsym{,} \, \square \, \ottsym{)}}{}{}{}{}\ottprodnewline
+\ottprodline{|}{\ottsym{(}  \pi_1 \, \square \, \ottsym{)}}{}{}{}{}\ottprodnewline
+\ottprodline{|}{\ottsym{(}  \pi_2 \, \square \, \ottsym{)}}{}{}{}{}\ottprodnewline
+\ottprodline{|}{\varepsilon \, \square}{}{}{}{}\ottprodnewline
+\ottprodline{|}{\square \, \ottsym{+}  \ottnt{e_{{\mathrm{1}}}}}{}{}{}{}\ottprodnewline
+\ottprodline{|}{v  \ottsym{+} \, \square}{}{}{}{}\ottprodnewline
+\ottprodline{|}{\square \, \stackrel{?}{=}  \ottnt{e_{{\mathrm{1}}}}}{}{}{}{}\ottprodnewline
+\ottprodline{|}{v  \stackrel{?}{=} \, \square}{}{}{}{}\ottprodnewline
+\ottprodline{|}{\ottkw{if} \, \square \, \ottkw{then} \, \ottnt{e_{{\mathrm{1}}}} \, \ottkw{else} \, \ottnt{e_{{\mathrm{2}}}}}{}{}{}{}}
 
 \newcommand{\ottu}{
 \ottrulehead{\ottnt{u}  ,\ \ottnt{k}}{::=}{}\ottprodnewline
