@@ -60,7 +60,7 @@ e :: e ::=
   | x :: :: Var {{com Variables}}
   | b :: :: Bool {{com Booleans }}
   | n :: :: Nat {{com Natural Numbers }}
-  | \ x : T . e :: :: Lam {{com Functions }} 
+  | \ x  . e :: :: Lam {{com Functions }} 
   | e1 $ e2 :: :: App {{com Function Application}} {{tex [[e1]]\ [[e2]]}}
   | e1 + e2 :: :: Plus {{com Addition}}
   | e1 == e2 :: :: Eq {{com Number Equality Test}}
@@ -91,10 +91,10 @@ O :: Observable ::= {{com Observable values}}
   | b :: :: Bool
   | n :: :: Nat
 
-r {{tex r}} :: Raw ::= {{com Raw Irreducable (closed) terms (i.e. not ascribed with)}}
+r {{tex r}} :: Raw ::= {{com Raw Irreducable (closed) terms}}
   | b :: :: Bool
   | n :: :: Nat
-  | \ x : T . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
+  | \ x  . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
   | ( v1 , v2 ) :: :: Pair
   % | ( r1 , .... ,  ri ) :: M :: PairMany
 
@@ -102,7 +102,7 @@ v {{tex v}} :: Irr ::= {{com Irreducable (closed) terms }}
   | ep r :: :: Ascr
   | b :: :: Bool 
   | n :: :: Nat
-  | \ x : T . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
+  | \ x  . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
   | ( v1 , v2 ) :: :: Pair
   % | ( v1 , .... ,  vi ) :: M :: PairMany
 
@@ -111,9 +111,9 @@ ep {{tex \varepsilon}} :: Evidence ::=
   | ep1 /\ ep2 :: M :: Meet
   | dom ep :: M :: Dom
   | cod ep :: M :: Cod
-  | Proj1 ep :: M :: Left
-  | Proj2 ep :: M :: Right
-  | Proj @ i ep :: M :: Proji {{tex \ottkw{Proj}_{[[i]]} [[ep]] }}
+  | Prod1 ep :: M :: Left
+  | Prod2 ep :: M :: Right
+  | Prod @ i ep :: M :: Proji {{tex \ottkw{Proj}_{[[i]]} [[ep]] }}
   | ( ep ) :: M :: Parens
 
 T :: Type ::= {{com Types}}
@@ -139,8 +139,8 @@ C :: C ::=                               {{ com evaluation context }}
   | v __         ::  :: AppR                  
   | ( __ , e ) :: ::  PairL
   | ( v , __ ) :: :: PairR
-  | ( pi1 __ ) :: :: Proj1
-  | ( pi2 __ ) :: :: Proj2
+  | pi1 __ :: :: Proj1
+  |  pi2 __  :: :: Proj2
   | ep __ :: :: Ascr
   | __ + e1 :: :: PlusL
   | v + __ :: :: PlusR
@@ -163,8 +163,9 @@ u , k :: CPSValue ::=
   | PROD1 :: M :: Prod1 {{tex \mathtt{PROD}_1 }}
   | PROD2 :: M :: Prod2 {{tex \mathtt{PROD}_2 }}
   | PROD @ i :: M :: Prodi {{tex \mathtt{PROD}_{[[i]]} }}
-  | [| ep |] :: M :: TTrans
-  | [| v |] :: M :: VTrans
+  | [| ep |] :: M :: TTrans {{tex \mathcal{T}\llbracket [[ep]] \rrbracket}}
+  | [| v |] :: M :: VTrans {{tex \mathcal{V}\llbracket [[v]] \rrbracket}}
+  | [ x |=> u ] u' :: M :: Subst {{tex  [ [[u]] / [[x]] ] [[u']] }}
 
 d :: CPSDecl ::=
   | x := u :: :: Def
@@ -172,7 +173,7 @@ d :: CPSDecl ::=
   | x := pi2 u :: :: Proj2
   | x := u1 + u2 :: :: Plus
   | x := u1 == u2 :: :: Eq
-  | x := pi @ i u :: M :: Proji
+  | x := pi @ i u :: M :: Proji {{tex [[x]] := \pi_{[[i]]}\ [[u]] }}
 
 
 t :: CPS ::= 
@@ -183,7 +184,7 @@ t :: CPS ::=
   | halt [ u ] :: :: ReturnHalt
   | error :: :: ErrorHalt
   | ( t ) :: M :: Parens 
-  | [| e |] k :: M :: Translation
+  | [| e |] k :: M :: Translation {{tex \mathcal{E}\llbracket [[e]] \rrbracket [[k]] }}
   | [ x |=> u ] t :: M :: Subst {{tex  [ [[u]] / [[x]] ] [[t]] }}
   | \\ :: M :: Newline {{tex \\ }}
   | -- t :: M :: Indent {{tex \qquad [[t]] }}
@@ -264,17 +265,21 @@ if b then e1 else e2 --> e
 if ep b then e1 else e2 --> e
 
 ----------------------------------------- :: App
-(\ x : T . e) v  --> [ x |=> v ] e
+(\ x . e) v  --> [ x |=> v ] e
 
 ----------------------------------------- :: AppEv
-(ep1 (\ x : T . e)) (ep2 r)  --> (cod ep2) ([ x |=> (dom ep1 /\ ep2) r ] e)
+(ep1 (\ x . e)) (ep2 r)  --> (cod ep2) ([ x |=> (dom ep1 /\ ep2) r ] e)
 
 dom ep1 /\ ep2 undefined
 ----------------------------------------- :: AppEvFail
-(ep1 (\ x : T . e)) (ep2 r)  --> error
+(ep1 (\ x . e)) (ep2 r)  --> error
 
 ----------------------------------------- :: AppEvPartial
-(ep (\ x : T . e1)) r  --> (cod ep)([ x |=> (dom ep) e2 ] e1)
+(ep (\ x . e1)) r  --> (cod ep)([ x |=> (dom ep) e2 ] e1)
+
+dom ep undefined
+----------------------------------------- :: AppEvPartialFail
+(ep (\ x . e1)) v  --> error
 
 ----------------------------------------- :: Plus
 n1 + n2  --> n1 :+: n2
@@ -309,15 +314,19 @@ pi@i (e1 , e2) --> e_i
 
 i elem {1,2}
 ------------------------------------------ :: ProjEv
-pi@i (ep (e1 , e2)) --> Proj@i ep e_i
+pi@i (ep (e1 , e2)) --> (Prod@i ep) e_i
+
+Prod@i ep undefined
+------------------------------------------ :: ProjFail
+pi@i (ep (e1 , e2)) --> error
 
 
 ------------------------------------------ :: Ascr
-ep1 (ep2 e) --> (ep1 /\ ep2) e
+ep1 (ep2 r) --> (ep1 /\ ep2) r
 
 ep1 /\ ep2 undefined
 ------------------------------------------ :: AscrFail
-ep1 (ep2 e) --> error
+ep1 (ep2 r) --> error
 
 e1 --> e2
 ------------------------------------------ :: Context
@@ -362,7 +371,7 @@ by
 
   Gamma , ( x : T1) |- e : T2
 -------------- :: Lam
-  Gamma |- \ x : T1 . e : T1 -> T2 
+  Gamma |- \ x  . e : T1 -> T2 
 
   Gamma |- e1 : T1 -> T2
   Gamma |- e2 : T1
@@ -425,7 +434,7 @@ T2 /\ T2' ==== T2''
 T1 * T2 /\ T1' * T2' ==== T1'' * T2'' 
 
 defn
-[| v |]  ==== u :: :: ValTransform :: ValTransform  {{com CPS Translation of Closed Values}}
+[| v |]  ==== u :: :: ValTransform :: ValTransform  {{com CPS Translation of Closed Values}} {{tex \mathcal{V}\llbracket [[v]] \rrbracket = [[u]] }}
 by
 
 
@@ -438,7 +447,7 @@ by
 
 [|e|] c ==== t
 ---------------------------- :: Fun
-[| \ x : T . e |]  ==== (DYN, \ x c . t )
+[| \ x  . e |]  ==== (DYN, \ x c . t )
 
 
 ---------------------------- :: Pair
@@ -449,7 +458,7 @@ by
 [| ep r |]  ==== ([|ep|], u )
 
 defn
-[| e |] k ==== t :: :: Transform :: Transform  {{com CPS Translation of Expressions}}
+[| e |] k ==== t :: :: Transform :: Transform  {{com CPS Translation of Expressions}} {{tex \mathcal{E}\llbracket [[e]] \rrbracket [[k]] = [[t]] }}
 by
 
 ---------------------------- :: Var
@@ -464,7 +473,7 @@ by
 
 [|e|] c ==== t
 ---------------------------- :: Fun
-[| (\ x : T . e) |] k ==== k [(DYN, \ x c . t )]
+[| (\ x  . e) |] k ==== k [(DYN, \ x c . t )]
 
 k1 := ( \x2 . let y1 := pi1 x1 in let z1 := pi2 x1 in let y2 := pi1 x2 in let z2 := pi2 x2 in t1 )
 t1 := DOM [y1, \y1' . COD [ y1, \y1''. MEET [y1', y2, (\ y3 . z1 [(y3, z2), (\z3 . t2) ] )] ] ] 
@@ -497,7 +506,8 @@ k1 := ( \x2 . let z1 := pi2 x1 in let z2 := pi2 x2 in let z3 := z1 == z2 in k [z
 ---------------------------- :: If
 [| if e0 then e1 else e2 |] k ==== t
 
-[|e|] (\ x . let x' := pi@i x in k [x'] ) ==== t
+[|e|] (\ x . let y1 := pi1 x in let y2 := pi2 x in PROD @ i [y1, k']  ) ==== t
+k' := (\ z1 . let z2 := pi@i y in let z21 := pi1 z2 in let z22 := pi2 z2 in MEET[z1, z21, (\z1' . k [(z1', z22)] )])
 ---------------------------- ::Proj
 [| pi @ i e |] k ==== t
 
@@ -509,7 +519,7 @@ k1 := ( \x2 . let z1 := pi2 x1 in let z2 := pi2 x2 in let z3 := z1 == z2 in k [z
 [| error |] k ==== error
 
 defn
-[| ep |]  ==== u :: :: EvTransform :: EvTransform {{com CPS Representation of Runtime Evidence}} % {{tex \llbracket [[ep]] \rrbracket = [[u]] }}
+[| ep |]  ==== u :: :: EvTransform :: EvTransform {{com CPS Representation of Runtime Evidence}}  {{tex \mathcal{T}\llbracket [[ep]] \rrbracket = [[u]] }}
 by
 
 ------------------ :: Bool

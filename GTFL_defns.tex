@@ -44,7 +44,7 @@
 \ottfirstprodline{|}{\mathit{x}}{}{}{}{\ottcom{Variables}}\ottprodnewline
 \ottprodline{|}{b}{}{}{}{\ottcom{Booleans}}\ottprodnewline
 \ottprodline{|}{\ottnt{n}}{}{}{}{\ottcom{Natural Numbers}}\ottprodnewline
-\ottprodline{|}{\lambda  \mathit{x}  \ottsym{:}  \ottnt{T}  \ldotp  \ottnt{e}}{}{}{}{\ottcom{Functions}}\ottprodnewline
+\ottprodline{|}{\lambda  \mathit{x}  \ldotp  \ottnt{e}}{}{}{}{\ottcom{Functions}}\ottprodnewline
 \ottprodline{|}{ \ottnt{e_{{\mathrm{1}}}} \  \ottnt{e_{{\mathrm{2}}}} }{}{}{}{\ottcom{Function Application}}\ottprodnewline
 \ottprodline{|}{\ottnt{e_{{\mathrm{1}}}}  \ottsym{+}  \ottnt{e_{{\mathrm{2}}}}}{}{}{}{\ottcom{Addition}}\ottprodnewline
 \ottprodline{|}{\ottnt{e_{{\mathrm{1}}}}  \stackrel{?}{=}  \ottnt{e_{{\mathrm{2}}}}}{}{}{}{\ottcom{Number Equality Test}}\ottprodnewline
@@ -61,10 +61,10 @@
 \ottprodline{|}{\ottnt{n}}{}{}{}{}}
 
 \newcommand{\ottr}{
-\ottrulehead{r}{::=}{\ottcom{Raw Irreducable (closed) terms (i.e. not ascribed with)}}\ottprodnewline
+\ottrulehead{r}{::=}{\ottcom{Raw Irreducable (closed) terms}}\ottprodnewline
 \ottfirstprodline{|}{b}{}{}{}{}\ottprodnewline
 \ottprodline{|}{\ottnt{n}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\lambda  \mathit{x}  \ottsym{:}  \ottnt{T}  \ldotp  \ottnt{e}}{}{}{}{\ottcom{Functions}}\ottprodnewline
+\ottprodline{|}{\lambda  \mathit{x}  \ldotp  \ottnt{e}}{}{}{}{\ottcom{Functions}}\ottprodnewline
 \ottprodline{|}{ \langle  v_{{\mathrm{1}}} ,  v_{{\mathrm{2}}}  \rangle }{}{}{}{}}
 
 \newcommand{\ottv}{
@@ -72,7 +72,7 @@
 \ottfirstprodline{|}{\varepsilon \, r}{}{}{}{}\ottprodnewline
 \ottprodline{|}{b}{}{}{}{}\ottprodnewline
 \ottprodline{|}{\ottnt{n}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\lambda  \mathit{x}  \ottsym{:}  \ottnt{T}  \ldotp  \ottnt{e}}{}{}{}{\ottcom{Functions}}\ottprodnewline
+\ottprodline{|}{\lambda  \mathit{x}  \ldotp  \ottnt{e}}{}{}{}{\ottcom{Functions}}\ottprodnewline
 \ottprodline{|}{ \langle  v_{{\mathrm{1}}} ,  v_{{\mathrm{2}}}  \rangle }{}{}{}{}}
 
 \newcommand{\ottep}{
@@ -98,8 +98,8 @@
 \ottprodline{|}{v \, \square}{}{}{}{}\ottprodnewline
 \ottprodline{|}{\ottsym{(} \, \square \, \ottsym{,}  \ottnt{e}  \ottsym{)}}{}{}{}{}\ottprodnewline
 \ottprodline{|}{\ottsym{(}  v  \ottsym{,} \, \square \, \ottsym{)}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\ottsym{(}  \pi_1 \, \square \, \ottsym{)}}{}{}{}{}\ottprodnewline
-\ottprodline{|}{\ottsym{(}  \pi_2 \, \square \, \ottsym{)}}{}{}{}{}\ottprodnewline
+\ottprodline{|}{\pi_1 \, \square}{}{}{}{}\ottprodnewline
+\ottprodline{|}{\pi_2 \, \square}{}{}{}{}\ottprodnewline
 \ottprodline{|}{\varepsilon \, \square}{}{}{}{}\ottprodnewline
 \ottprodline{|}{\square \, \ottsym{+}  \ottnt{e_{{\mathrm{1}}}}}{}{}{}{}\ottprodnewline
 \ottprodline{|}{v  \ottsym{+} \, \square}{}{}{}{}\ottprodnewline
@@ -181,14 +181,14 @@
 
 \newcommand{\ottdruleRedApp}[1]{\ottdrule[#1]{%
 }{
- ( \lambda  \mathit{x}  \ottsym{:}  \ottnt{T}  \ldotp  \ottnt{e} )  \, v  \longrightarrow   [  v  /  \mathit{x}  ]  \ottnt{e} }{%
+ ( \lambda  \mathit{x}  \ldotp  \ottnt{e} )  \, v  \longrightarrow   [  v  /  \mathit{x}  ]  \ottnt{e} }{%
 {\ottdrulename{RedApp}}{}%
 }}
 
 
 \newcommand{\ottdruleRedAppEv}[1]{\ottdrule[#1]{%
 }{
- ( \varepsilon_{{\mathrm{1}}} \,  ( \lambda  \mathit{x}  \ottsym{:}  \ottnt{T}  \ldotp  \ottnt{e} )  )  \,  ( \varepsilon_{{\mathrm{2}}} \, r )   \longrightarrow  \ottsym{(}  \ottkw{cod} \, \varepsilon_{{\mathrm{2}}}  \ottsym{)} \,  (  [  \ottsym{(}  \ottkw{dom} \, \varepsilon_{{\mathrm{1}}}  \sqcap  \varepsilon_{{\mathrm{2}}}  \ottsym{)} \, r  /  \mathit{x}  ]  \ottnt{e}  ) }{%
+ ( \varepsilon_{{\mathrm{1}}} \,  ( \lambda  \mathit{x}  \ldotp  \ottnt{e} )  )  \,  ( \varepsilon_{{\mathrm{2}}} \, r )   \longrightarrow  \ottsym{(}  \ottkw{cod} \, \varepsilon_{{\mathrm{2}}}  \ottsym{)} \,  (  [  \ottsym{(}  \ottkw{dom} \, \varepsilon_{{\mathrm{1}}}  \sqcap  \varepsilon_{{\mathrm{2}}}  \ottsym{)} \, r  /  \mathit{x}  ]  \ottnt{e}  ) }{%
 {\ottdrulename{RedAppEv}}{}%
 }}
 
@@ -196,15 +196,23 @@
 \newcommand{\ottdruleRedAppEvFail}[1]{\ottdrule[#1]{%
 \ottpremise{\ottkw{dom} \, \varepsilon_{{\mathrm{1}}}  \sqcap  \varepsilon_{{\mathrm{2}}} \, \ottkw{undefined}}%
 }{
- ( \varepsilon_{{\mathrm{1}}} \,  ( \lambda  \mathit{x}  \ottsym{:}  \ottnt{T}  \ldotp  \ottnt{e} )  )  \,  ( \varepsilon_{{\mathrm{2}}} \, r )   \longrightarrow  \ottkw{error}}{%
+ ( \varepsilon_{{\mathrm{1}}} \,  ( \lambda  \mathit{x}  \ldotp  \ottnt{e} )  )  \,  ( \varepsilon_{{\mathrm{2}}} \, r )   \longrightarrow  \ottkw{error}}{%
 {\ottdrulename{RedAppEvFail}}{}%
 }}
 
 
 \newcommand{\ottdruleRedAppEvPartial}[1]{\ottdrule[#1]{%
 }{
- ( \varepsilon \,  ( \lambda  \mathit{x}  \ottsym{:}  \ottnt{T}  \ldotp  \ottnt{e_{{\mathrm{1}}}} )  )  \, r  \longrightarrow  \ottsym{(}  \ottkw{cod} \, \varepsilon  \ottsym{)} \,  (  [  \ottsym{(}  \ottkw{dom} \, \varepsilon  \ottsym{)} \, \ottnt{e_{{\mathrm{2}}}}  /  \mathit{x}  ]  \ottnt{e_{{\mathrm{1}}}}  ) }{%
+ ( \varepsilon \,  ( \lambda  \mathit{x}  \ldotp  \ottnt{e_{{\mathrm{1}}}} )  )  \, r  \longrightarrow  \ottsym{(}  \ottkw{cod} \, \varepsilon  \ottsym{)} \,  (  [  \ottsym{(}  \ottkw{dom} \, \varepsilon  \ottsym{)} \, \ottnt{e_{{\mathrm{2}}}}  /  \mathit{x}  ]  \ottnt{e_{{\mathrm{1}}}}  ) }{%
 {\ottdrulename{RedAppEvPartial}}{}%
+}}
+
+
+\newcommand{\ottdruleRedAppEvPartialFail}[1]{\ottdrule[#1]{%
+\ottpremise{\ottkw{dom} \, \varepsilon \, \ottkw{undefined}}%
+}{
+ ( \varepsilon \,  ( \lambda  \mathit{x}  \ldotp  \ottnt{e_{{\mathrm{1}}}} )  )  \, v  \longrightarrow  \ottkw{error}}{%
+{\ottdrulename{RedAppEvPartialFail}}{}%
 }}
 
 
@@ -273,14 +281,22 @@
 \newcommand{\ottdruleRedProjEv}[1]{\ottdrule[#1]{%
 \ottpremise{i \, \in \, \ottsym{\{}  \ottsym{1}  \ottsym{,}  \ottsym{2}  \ottsym{\}}}%
 }{
- \pi_{ i }   ( \varepsilon \,  \langle  \ottnt{e_{{\mathrm{1}}}} ,  \ottnt{e_{{\mathrm{2}}}}  \rangle  )    \longrightarrow   \ottkw{Proj}_{ i }  \varepsilon  \, \ottnt{e_{\ottmv{i}}}}{%
+ \pi_{ i }   ( \varepsilon \,  \langle  \ottnt{e_{{\mathrm{1}}}} ,  \ottnt{e_{{\mathrm{2}}}}  \rangle  )    \longrightarrow  \ottsym{(}   \ottkw{Proj}_{ i }  \varepsilon   \ottsym{)} \, \ottnt{e_{\ottmv{i}}}}{%
 {\ottdrulename{RedProjEv}}{}%
+}}
+
+
+\newcommand{\ottdruleRedProjFail}[1]{\ottdrule[#1]{%
+\ottpremise{ \ottkw{Proj}_{ i }  \varepsilon  \, \ottkw{undefined}}%
+}{
+ \pi_{ i }   ( \varepsilon \,  \langle  \ottnt{e_{{\mathrm{1}}}} ,  \ottnt{e_{{\mathrm{2}}}}  \rangle  )    \longrightarrow  \ottkw{error}}{%
+{\ottdrulename{RedProjFail}}{}%
 }}
 
 
 \newcommand{\ottdruleRedAscr}[1]{\ottdrule[#1]{%
 }{
-\varepsilon_{{\mathrm{1}}} \,  ( \varepsilon_{{\mathrm{2}}} \, \ottnt{e} )   \longrightarrow  \ottsym{(}  \varepsilon_{{\mathrm{1}}}  \sqcap  \varepsilon_{{\mathrm{2}}}  \ottsym{)} \, \ottnt{e}}{%
+\varepsilon_{{\mathrm{1}}} \,  ( \varepsilon_{{\mathrm{2}}} \, r )   \longrightarrow  \ottsym{(}  \varepsilon_{{\mathrm{1}}}  \sqcap  \varepsilon_{{\mathrm{2}}}  \ottsym{)} \, r}{%
 {\ottdrulename{RedAscr}}{}%
 }}
 
@@ -288,7 +304,7 @@
 \newcommand{\ottdruleRedAscrFail}[1]{\ottdrule[#1]{%
 \ottpremise{\varepsilon_{{\mathrm{1}}}  \sqcap  \varepsilon_{{\mathrm{2}}} \, \ottkw{undefined}}%
 }{
-\varepsilon_{{\mathrm{1}}} \,  ( \varepsilon_{{\mathrm{2}}} \, \ottnt{e} )   \longrightarrow  \ottkw{error}}{%
+\varepsilon_{{\mathrm{1}}} \,  ( \varepsilon_{{\mathrm{2}}} \, r )   \longrightarrow  \ottkw{error}}{%
 {\ottdrulename{RedAscrFail}}{}%
 }}
 
@@ -316,6 +332,7 @@
 \ottusedrule{\ottdruleRedAppEv{}}
 \ottusedrule{\ottdruleRedAppEvFail{}}
 \ottusedrule{\ottdruleRedAppEvPartial{}}
+\ottusedrule{\ottdruleRedAppEvPartialFail{}}
 \ottusedrule{\ottdruleRedPlus{}}
 \ottusedrule{\ottdruleRedPlusEvL{}}
 \ottusedrule{\ottdruleRedPlusEvR{}}
@@ -325,6 +342,7 @@
 \ottusedrule{\ottdruleRedEqEvR{}}
 \ottusedrule{\ottdruleRedProj{}}
 \ottusedrule{\ottdruleRedProjEv{}}
+\ottusedrule{\ottdruleRedProjFail{}}
 \ottusedrule{\ottdruleRedAscr{}}
 \ottusedrule{\ottdruleRedAscrFail{}}
 \ottusedrule{\ottdruleRedContext{}}
@@ -380,7 +398,7 @@
 \newcommand{\ottdruleHastypeLam}[1]{\ottdrule[#1]{%
 \ottpremise{\Gamma  \ottsym{,}  \ottsym{(}  \mathit{x}  \ottsym{:}  \ottnt{T_{{\mathrm{1}}}}  \ottsym{)}  \vdash  \ottnt{e}  \ottsym{:}  \ottnt{T_{{\mathrm{2}}}}}%
 }{
-\Gamma  \vdash  \lambda  \mathit{x}  \ottsym{:}  \ottnt{T_{{\mathrm{1}}}}  \ldotp  \ottnt{e}  \ottsym{:}   \ottnt{T_{{\mathrm{1}}}} \to \ottnt{T_{{\mathrm{2}}}} }{%
+\Gamma  \vdash  \lambda  \mathit{x}  \ldotp  \ottnt{e}  \ottsym{:}   \ottnt{T_{{\mathrm{1}}}} \to \ottnt{T_{{\mathrm{2}}}} }{%
 {\ottdrulename{HastypeLam}}{}%
 }}
 
@@ -507,41 +525,41 @@
 %% defn ValTransform
 \newcommand{\ottdruleValTransformBool}[1]{\ottdrule[#1]{%
 }{
-\llbracket  b  \rrbracket  =   \langle   \mathtt{ DYN }  ,  b \rangle }{%
+ \mathcal{V}\llbracket  b  \rrbracket =   \langle   \mathtt{ DYN }  ,  b \rangle  }{%
 {\ottdrulename{ValTransformBool}}{}%
 }}
 
 
 \newcommand{\ottdruleValTransformNum}[1]{\ottdrule[#1]{%
 }{
-\llbracket  \ottnt{n}  \rrbracket  =   \langle   \mathtt{ DYN }  ,  \ottnt{n} \rangle }{%
+ \mathcal{V}\llbracket  \ottnt{n}  \rrbracket =   \langle   \mathtt{ DYN }  ,  \ottnt{n} \rangle  }{%
 {\ottdrulename{ValTransformNum}}{}%
 }}
 
 
 \newcommand{\ottdruleValTransformFun}[1]{\ottdrule[#1]{%
-\ottpremise{\llbracket  \ottnt{e}  \rrbracket  \mathit{c}  =  \ottnt{t}}%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e}  \rrbracket  \mathit{c}  =  \ottnt{t} }%
 }{
-\llbracket  \lambda  \mathit{x}  \ottsym{:}  \ottnt{T}  \ldotp  \ottnt{e}  \rrbracket  =   \langle   \mathtt{ DYN }  ,  \lambda  \mathit{x} \, \mathit{c}  \ldotp  \ottnt{t} \rangle }{%
+ \mathcal{V}\llbracket  \lambda  \mathit{x}  \ldotp  \ottnt{e}  \rrbracket =   \langle   \mathtt{ DYN }  ,  \lambda  \mathit{x} \, \mathit{c}  \ldotp  \ottnt{t} \rangle  }{%
 {\ottdrulename{ValTransformFun}}{}%
 }}
 
 
 \newcommand{\ottdruleValTransformPair}[1]{\ottdrule[#1]{%
 }{
-\llbracket   \langle  v_{{\mathrm{1}}} ,  v_{{\mathrm{2}}}  \rangle   \rrbracket  =   \langle   \mathtt{ DYN }  ,   \langle  \llbracket  v_{{\mathrm{1}}}  \rrbracket ,  \llbracket  v_{{\mathrm{2}}}  \rrbracket \rangle  \rangle }{%
+ \mathcal{V}\llbracket   \langle  v_{{\mathrm{1}}} ,  v_{{\mathrm{2}}}  \rangle   \rrbracket =   \langle   \mathtt{ DYN }  ,   \langle   \mathcal{V}\llbracket  v_{{\mathrm{1}}}  \rrbracket  ,   \mathcal{V}\llbracket  v_{{\mathrm{2}}}  \rrbracket  \rangle  \rangle  }{%
 {\ottdrulename{ValTransformPair}}{}%
 }}
 
 
 \newcommand{\ottdruleValTransformEv}[1]{\ottdrule[#1]{%
-\ottpremise{\llbracket  r  \rrbracket  =   \langle   \mathtt{ DYN }  ,  \ottnt{u} \rangle }%
+\ottpremise{ \mathcal{V}\llbracket  r  \rrbracket =   \langle   \mathtt{ DYN }  ,  \ottnt{u} \rangle  }%
 }{
-\llbracket  \varepsilon \, r  \rrbracket  =   \langle  \llbracket  \varepsilon  \rrbracket ,  \ottnt{u} \rangle }{%
+ \mathcal{V}\llbracket  \varepsilon \, r  \rrbracket =   \langle   \mathcal{T}\llbracket  \varepsilon  \rrbracket  ,  \ottnt{u} \rangle  }{%
 {\ottdrulename{ValTransformEv}}{}%
 }}
 
-\newcommand{\ottdefnValTransform}[1]{\begin{ottdefnblock}[#1]{$\llbracket  v  \rrbracket  =  \ottnt{u}$}{\ottcom{CPS Translation of Closed Values}}
+\newcommand{\ottdefnValTransform}[1]{\begin{ottdefnblock}[#1]{$ \mathcal{V}\llbracket  v  \rrbracket =  \ottnt{u} $}{\ottcom{CPS Translation of Closed Values}}
 \ottusedrule{\ottdruleValTransformBool{}}
 \ottusedrule{\ottdruleValTransformNum{}}
 \ottusedrule{\ottdruleValTransformFun{}}
@@ -552,29 +570,29 @@
 %% defn Transform
 \newcommand{\ottdruleTransformVar}[1]{\ottdrule[#1]{%
 }{
-\llbracket  \mathit{x}  \rrbracket  \ottnt{k}  =   \ottnt{k} ( \mathit{x} ) }{%
+ \mathcal{E}\llbracket  \mathit{x}  \rrbracket  \ottnt{k}  =   \ottnt{k} ( \mathit{x} )  }{%
 {\ottdrulename{TransformVar}}{}%
 }}
 
 
 \newcommand{\ottdruleTransformBool}[1]{\ottdrule[#1]{%
 }{
-\llbracket  b  \rrbracket  \ottnt{k}  =   \ottnt{k} (  \langle   \mathtt{ DYN }  ,  b \rangle  ) }{%
+ \mathcal{E}\llbracket  b  \rrbracket  \ottnt{k}  =   \ottnt{k} (  \langle   \mathtt{ DYN }  ,  b \rangle  )  }{%
 {\ottdrulename{TransformBool}}{}%
 }}
 
 
 \newcommand{\ottdruleTransformNum}[1]{\ottdrule[#1]{%
 }{
-\llbracket  \ottnt{n}  \rrbracket  \ottnt{k}  =   \ottnt{k} (  \langle   \mathtt{ DYN }  ,  \ottnt{n} \rangle  ) }{%
+ \mathcal{E}\llbracket  \ottnt{n}  \rrbracket  \ottnt{k}  =   \ottnt{k} (  \langle   \mathtt{ DYN }  ,  \ottnt{n} \rangle  )  }{%
 {\ottdrulename{TransformNum}}{}%
 }}
 
 
 \newcommand{\ottdruleTransformFun}[1]{\ottdrule[#1]{%
-\ottpremise{\llbracket  \ottnt{e}  \rrbracket  \mathit{c}  =  \ottnt{t}}%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e}  \rrbracket  \mathit{c}  =  \ottnt{t} }%
 }{
-\llbracket   ( \lambda  \mathit{x}  \ottsym{:}  \ottnt{T}  \ldotp  \ottnt{e} )   \rrbracket  \ottnt{k}  =   \ottnt{k} (  \langle   \mathtt{ DYN }  ,  \lambda  \mathit{x} \, \mathit{c}  \ldotp  \ottnt{t} \rangle  ) }{%
+ \mathcal{E}\llbracket   ( \lambda  \mathit{x}  \ldotp  \ottnt{e} )   \rrbracket  \ottnt{k}  =   \ottnt{k} (  \langle   \mathtt{ DYN }  ,  \lambda  \mathit{x} \, \mathit{c}  \ldotp  \ottnt{t} \rangle  )  }{%
 {\ottdrulename{TransformFun}}{}%
 }}
 
@@ -583,76 +601,77 @@
 \ottpremise{\ottnt{k_{{\mathrm{1}}}}  \ottsym{:=}  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{2}}}}  \ldotp  \ottkw{let} \, \mathit{y_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x_{{\mathrm{1}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z_{{\mathrm{1}}}}  \ottsym{:=}  \pi_2  \mathit{x_{{\mathrm{1}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{y_{{\mathrm{2}}}}  \ottsym{:=}  \pi_1  \mathit{x_{{\mathrm{2}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z_{{\mathrm{2}}}}  \ottsym{:=}  \pi_2  \mathit{x_{{\mathrm{2}}}} \, \ottkw{in} \, \ottnt{t_{{\mathrm{1}}}}  \ottsym{)}}%
 \ottpremise{\ottnt{t_{{\mathrm{1}}}}  \ottsym{:=}    \mathtt{DOM }  ( \mathit{y_{{\mathrm{1}}}}  \ottsym{,}  \lambda  \mathit{y'_{{\mathrm{1}}}}  \ldotp    \mathtt{COD }  ( \mathit{y_{{\mathrm{1}}}}  \ottsym{,}  \lambda  \mathit{y''_{{\mathrm{1}}}}  \ldotp    \mathtt{MEET }  ( \mathit{y'_{{\mathrm{1}}}}  \ottsym{,}  \mathit{y_{{\mathrm{2}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{y_{{\mathrm{3}}}}  \ldotp   \mathit{z_{{\mathrm{1}}}} (  \langle  \mathit{y_{{\mathrm{3}}}} ,  \mathit{z_{{\mathrm{2}}}} \rangle   \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{3}}}}  \ldotp  \ottnt{t_{{\mathrm{2}}}}  \ottsym{)} )   \ottsym{)} )  )  ) }%
 \ottpremise{\ottnt{t_{{\mathrm{2}}}}  \ottsym{:=}  \ottkw{let} \, \mathit{z'_{{\mathrm{3}}}}  \ottsym{:=}  \pi_1  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z''_{{\mathrm{3}}}}  \ottsym{:=}  \pi_2  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \,   \mathtt{MEET }  ( \mathit{y''_{{\mathrm{1}}}}  \ottsym{,}  \mathit{z'_{{\mathrm{3}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{4}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z_{{\mathrm{4}}}} ,  \mathit{z''_{{\mathrm{3}}}} \rangle  )   \ottsym{)} ) }%
-\ottpremise{\llbracket  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k_{{\mathrm{1}}}}  =  \ottnt{t'}}%
-\ottpremise{\llbracket  \ottnt{e_{{\mathrm{1}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}}  \ldotp  \ottnt{t'}  \ottsym{)}  =  \ottnt{t}}%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k_{{\mathrm{1}}}}  =  \ottnt{t'} }%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{1}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}}  \ldotp  \ottnt{t'}  \ottsym{)}  =  \ottnt{t} }%
 }{
-\llbracket  \ottnt{e_{{\mathrm{1}}}} \, \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t}}{%
+ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{1}}}} \, \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t} }{%
 {\ottdrulename{TransformApp}}{}%
 }}
 
 
 \newcommand{\ottdruleTransformPlus}[1]{\ottdrule[#1]{%
 \ottpremise{\ottnt{k_{{\mathrm{1}}}}  \ottsym{:=}  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{2}}}}  \ldotp  \ottkw{let} \, \mathit{z_{{\mathrm{1}}}}  \ottsym{:=}  \pi_2  \mathit{x_{{\mathrm{1}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z_{{\mathrm{2}}}}  \ottsym{:=}  \pi_2  \mathit{x_{{\mathrm{2}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z_{{\mathrm{3}}}}  \ottsym{:=}  \mathit{z_{{\mathrm{1}}}}  \ottsym{+}  \mathit{z_{{\mathrm{2}}}} \, \ottkw{in} \,  \ottnt{k} ( \mathit{z_{{\mathrm{3}}}} )   \ottsym{)}}%
-\ottpremise{\llbracket  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k_{{\mathrm{1}}}}  =  \ottnt{t'}}%
-\ottpremise{\llbracket  \ottnt{e_{{\mathrm{1}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}}  \ldotp  \ottnt{t'}  \ottsym{)}  =  \ottnt{t}}%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k_{{\mathrm{1}}}}  =  \ottnt{t'} }%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{1}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}}  \ldotp  \ottnt{t'}  \ottsym{)}  =  \ottnt{t} }%
 }{
-\llbracket  \ottnt{e_{{\mathrm{1}}}}  \ottsym{+}  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t}}{%
+ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{1}}}}  \ottsym{+}  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t} }{%
 {\ottdrulename{TransformPlus}}{}%
 }}
 
 
 \newcommand{\ottdruleTransformEq}[1]{\ottdrule[#1]{%
 \ottpremise{\ottnt{k_{{\mathrm{1}}}}  \ottsym{:=}  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{2}}}}  \ldotp  \ottkw{let} \, \mathit{z_{{\mathrm{1}}}}  \ottsym{:=}  \pi_2  \mathit{x_{{\mathrm{1}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z_{{\mathrm{2}}}}  \ottsym{:=}  \pi_2  \mathit{x_{{\mathrm{2}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z_{{\mathrm{3}}}}  \ottsym{:=}  \mathit{z_{{\mathrm{1}}}}  \stackrel{?}{=}  \mathit{z_{{\mathrm{2}}}} \, \ottkw{in} \,  \ottnt{k} ( \mathit{z_{{\mathrm{3}}}} )   \ottsym{)}}%
-\ottpremise{\llbracket  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k_{{\mathrm{1}}}}  =  \ottnt{t'}}%
-\ottpremise{\llbracket  \ottnt{e_{{\mathrm{1}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}}  \ldotp  \ottnt{t'}  \ottsym{)}  =  \ottnt{t}}%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k_{{\mathrm{1}}}}  =  \ottnt{t'} }%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{1}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}}  \ldotp  \ottnt{t'}  \ottsym{)}  =  \ottnt{t} }%
 }{
-\llbracket  \ottnt{e_{{\mathrm{1}}}}  \ottsym{+}  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t}}{%
+ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{1}}}}  \ottsym{+}  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t} }{%
 {\ottdrulename{TransformEq}}{}%
 }}
 
 
 \newcommand{\ottdruleTransformPair}[1]{\ottdrule[#1]{%
-\ottpremise{\llbracket  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{2}}}}  \ldotp   \ottnt{k} (  \langle   \mathtt{ DYN }  ,   \langle  \mathit{x_{{\mathrm{1}}}} ,  \mathit{x_{{\mathrm{2}}}} \rangle  \rangle  )   \ottsym{)}  =  \ottnt{t'}}%
-\ottpremise{\llbracket  \ottnt{e_{{\mathrm{1}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}}  \ldotp  \ottnt{t'}  \ottsym{)}  =  \ottnt{t}}%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{2}}}}  \ldotp   \ottnt{k} (  \langle   \mathtt{ DYN }  ,   \langle  \mathit{x_{{\mathrm{1}}}} ,  \mathit{x_{{\mathrm{2}}}} \rangle  \rangle  )   \ottsym{)}  =  \ottnt{t'} }%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{1}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}}  \ldotp  \ottnt{t'}  \ottsym{)}  =  \ottnt{t} }%
 }{
-\llbracket   \langle  \ottnt{e_{{\mathrm{1}}}} ,  \ottnt{e_{{\mathrm{2}}}}  \rangle   \rrbracket  \ottnt{k}  =  \ottnt{t}}{%
+ \mathcal{E}\llbracket   \langle  \ottnt{e_{{\mathrm{1}}}} ,  \ottnt{e_{{\mathrm{2}}}}  \rangle   \rrbracket  \ottnt{k}  =  \ottnt{t} }{%
 {\ottdrulename{TransformPair}}{}%
 }}
 
 
 \newcommand{\ottdruleTransformIf}[1]{\ottdrule[#1]{%
-\ottpremise{\llbracket  \ottnt{e_{{\mathrm{1}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t_{{\mathrm{1}}}}}%
-\ottpremise{\llbracket  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t_{{\mathrm{2}}}}}%
-\ottpremise{\llbracket  \ottnt{e_{{\mathrm{0}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{0}}}}  \ldotp  \ottkw{let} \, \mathit{x}  \ottsym{:=}  \pi_2  \mathit{x_{{\mathrm{0}}}} \, \ottkw{in} \,  \ottkw{ if }\  \mathit{x} \ \ottkw{ then }\  \ottnt{t_{{\mathrm{1}}}} \ \ottkw{ else }\  \ottnt{t_{{\mathrm{2}}}}   \ottsym{)}  =  \ottnt{t}}%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{1}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t_{{\mathrm{1}}}} }%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t_{{\mathrm{2}}}} }%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e_{{\mathrm{0}}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{0}}}}  \ldotp  \ottkw{let} \, \mathit{x}  \ottsym{:=}  \pi_2  \mathit{x_{{\mathrm{0}}}} \, \ottkw{in} \,  \ottkw{ if }\  \mathit{x} \ \ottkw{ then }\  \ottnt{t_{{\mathrm{1}}}} \ \ottkw{ else }\  \ottnt{t_{{\mathrm{2}}}}   \ottsym{)}  =  \ottnt{t} }%
 }{
-\llbracket  \ottkw{if} \, \ottnt{e_{{\mathrm{0}}}} \, \ottkw{then} \, \ottnt{e_{{\mathrm{1}}}} \, \ottkw{else} \, \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t}}{%
+ \mathcal{E}\llbracket  \ottkw{if} \, \ottnt{e_{{\mathrm{0}}}} \, \ottkw{then} \, \ottnt{e_{{\mathrm{1}}}} \, \ottkw{else} \, \ottnt{e_{{\mathrm{2}}}}  \rrbracket  \ottnt{k}  =  \ottnt{t} }{%
 {\ottdrulename{TransformIf}}{}%
 }}
 
 
 \newcommand{\ottdruleTransformProj}[1]{\ottdrule[#1]{%
-\ottpremise{\llbracket  \ottnt{e}  \rrbracket  \ottsym{(}  \lambda  \mathit{x}  \ldotp  \ottkw{let} \, \mathit{x'}  \ottsym{:=} \, \pi \, \ottsym{@}  i \, \mathit{x} \, \ottkw{in} \,  \ottnt{k} ( \mathit{x'} )   \ottsym{)}  =  \ottnt{t}}%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e}  \rrbracket  \ottsym{(}  \lambda  \mathit{x}  \ldotp  \ottkw{let} \, \mathit{y_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x} \, \ottkw{in} \, \ottkw{let} \, \mathit{y_{{\mathrm{2}}}}  \ottsym{:=}  \pi_2  \mathit{x} \, \ottkw{in} \,   \mathtt{PROD}_{ i }  ( \mathit{y_{{\mathrm{1}}}}  \ottsym{,}  \ottnt{k'} )   \ottsym{)}  =  \ottnt{t} }%
+\ottpremise{\ottnt{k'}  \ottsym{:=}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{1}}}}  \ldotp  \ottkw{let} \,  \mathit{z_{{\mathrm{2}}}}  := \pi_{ i }\  \mathit{y}  \, \ottkw{in} \, \ottkw{let} \, \mathit{z_{{\mathrm{21}}}}  \ottsym{:=}  \pi_1  \mathit{z_{{\mathrm{2}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z_{{\mathrm{22}}}}  \ottsym{:=}  \pi_2  \mathit{z_{{\mathrm{2}}}} \, \ottkw{in} \,   \mathtt{MEET }  ( \mathit{z_{{\mathrm{1}}}}  \ottsym{,}  \mathit{z_{{\mathrm{21}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z'_{{\mathrm{1}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z'_{{\mathrm{1}}}} ,  \mathit{z_{{\mathrm{22}}}} \rangle  )   \ottsym{)} )   \ottsym{)}}%
 }{
-\llbracket   \pi_{ i }  \ottnt{e}   \rrbracket  \ottnt{k}  =  \ottnt{t}}{%
+ \mathcal{E}\llbracket   \pi_{ i }  \ottnt{e}   \rrbracket  \ottnt{k}  =  \ottnt{t} }{%
 {\ottdrulename{TransformProj}}{}%
 }}
 
 
 \newcommand{\ottdruleTransformEv}[1]{\ottdrule[#1]{%
-\ottpremise{\llbracket  \ottnt{e}  \rrbracket  \ottsym{(}  \lambda  \mathit{x}  \ldotp  \ottkw{let} \, \mathit{x_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x} \, \ottkw{in} \, \ottkw{let} \, \mathit{x_{{\mathrm{2}}}}  \ottsym{:=}  \pi_2  \mathit{x} \, \ottkw{in} \,   \mathtt{MEET }  ( \llbracket  \varepsilon  \rrbracket  \ottsym{,}  \mathit{x_{{\mathrm{1}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{y}  \ldotp   \ottnt{k} (  \langle  \mathit{y} ,  \mathit{x_{{\mathrm{2}}}} \rangle  )   \ottsym{)} )   \ottsym{)}  =  \ottnt{t}}%
+\ottpremise{ \mathcal{E}\llbracket  \ottnt{e}  \rrbracket  \ottsym{(}  \lambda  \mathit{x}  \ldotp  \ottkw{let} \, \mathit{x_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x} \, \ottkw{in} \, \ottkw{let} \, \mathit{x_{{\mathrm{2}}}}  \ottsym{:=}  \pi_2  \mathit{x} \, \ottkw{in} \,   \mathtt{MEET }  (  \mathcal{T}\llbracket  \varepsilon  \rrbracket   \ottsym{,}  \mathit{x_{{\mathrm{1}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{y}  \ldotp   \ottnt{k} (  \langle  \mathit{y} ,  \mathit{x_{{\mathrm{2}}}} \rangle  )   \ottsym{)} )   \ottsym{)}  =  \ottnt{t} }%
 }{
-\llbracket  \varepsilon \, \ottnt{e}  \rrbracket  \ottnt{k}  =  \ottnt{t}}{%
+ \mathcal{E}\llbracket  \varepsilon \, \ottnt{e}  \rrbracket  \ottnt{k}  =  \ottnt{t} }{%
 {\ottdrulename{TransformEv}}{}%
 }}
 
 
 \newcommand{\ottdruleTransformErr}[1]{\ottdrule[#1]{%
 }{
-\llbracket  \ottkw{error}  \rrbracket  \ottnt{k}  =  \ottkw{error}}{%
+ \mathcal{E}\llbracket  \ottkw{error}  \rrbracket  \ottnt{k}  =  \ottkw{error} }{%
 {\ottdrulename{TransformErr}}{}%
 }}
 
-\newcommand{\ottdefnTransform}[1]{\begin{ottdefnblock}[#1]{$\llbracket  \ottnt{e}  \rrbracket  \ottnt{k}  =  \ottnt{t}$}{\ottcom{CPS Translation of Expressions}}
+\newcommand{\ottdefnTransform}[1]{\begin{ottdefnblock}[#1]{$ \mathcal{E}\llbracket  \ottnt{e}  \rrbracket  \ottnt{k}  =  \ottnt{t} $}{\ottcom{CPS Translation of Expressions}}
 \ottusedrule{\ottdruleTransformVar{}}
 \ottusedrule{\ottdruleTransformBool{}}
 \ottusedrule{\ottdruleTransformNum{}}
@@ -670,39 +689,39 @@
 %% defn EvTransform
 \newcommand{\ottdruleEvTransformBool}[1]{\ottdrule[#1]{%
 }{
-\llbracket   \{   \mathsf{Bool}   \}   \rrbracket  =   \langle   \mathtt{BOOL }  ,  \ottsym{0} \rangle }{%
+ \mathcal{T}\llbracket   \{   \mathsf{Bool}   \}   \rrbracket =   \langle   \mathtt{BOOL }  ,  \ottsym{0} \rangle  }{%
 {\ottdrulename{EvTransformBool}}{}%
 }}
 
 
 \newcommand{\ottdruleEvTransformNat}[1]{\ottdrule[#1]{%
 }{
-\llbracket   \{   \mathsf{Nat}   \}   \rrbracket  =   \langle   \mathtt{NAT }  ,  \ottsym{0} \rangle }{%
+ \mathcal{T}\llbracket   \{   \mathsf{Nat}   \}   \rrbracket =   \langle   \mathtt{NAT }  ,  \ottsym{0} \rangle  }{%
 {\ottdrulename{EvTransformNat}}{}%
 }}
 
 
 \newcommand{\ottdruleEvTransformDyn}[1]{\ottdrule[#1]{%
 }{
-\llbracket   \{  \ottsym{\mbox{?}}  \}   \rrbracket  =   \langle   \mathtt{ DYN }  ,  \ottsym{0} \rangle }{%
+ \mathcal{T}\llbracket   \{  \ottsym{\mbox{?}}  \}   \rrbracket =   \langle   \mathtt{ DYN }  ,  \ottsym{0} \rangle  }{%
 {\ottdrulename{EvTransformDyn}}{}%
 }}
 
 
 \newcommand{\ottdruleEvTransformArr}[1]{\ottdrule[#1]{%
 }{
-\llbracket   \{   \ottnt{T_{{\mathrm{1}}}} \to \ottnt{T_{{\mathrm{2}}}}   \}   \rrbracket  =   \langle   \mathtt{ARROW }  ,   \langle  \llbracket   \{  \ottnt{T_{{\mathrm{1}}}}  \}   \rrbracket ,  \llbracket   \{  \ottnt{T_{{\mathrm{2}}}}  \}   \rrbracket \rangle  \rangle }{%
+ \mathcal{T}\llbracket   \{   \ottnt{T_{{\mathrm{1}}}} \to \ottnt{T_{{\mathrm{2}}}}   \}   \rrbracket =   \langle   \mathtt{ARROW }  ,   \langle   \mathcal{T}\llbracket   \{  \ottnt{T_{{\mathrm{1}}}}  \}   \rrbracket  ,   \mathcal{T}\llbracket   \{  \ottnt{T_{{\mathrm{2}}}}  \}   \rrbracket  \rangle  \rangle  }{%
 {\ottdrulename{EvTransformArr}}{}%
 }}
 
 
 \newcommand{\ottdruleEvTransformProd}[1]{\ottdrule[#1]{%
 }{
-\llbracket   \{   \ottnt{T_{{\mathrm{1}}}} \to \ottnt{T_{{\mathrm{2}}}}   \}   \rrbracket  =   \langle   \mathtt{PRODUCT }  ,   \langle  \llbracket   \{  \ottnt{T_{{\mathrm{1}}}}  \}   \rrbracket ,  \llbracket   \{  \ottnt{T_{{\mathrm{2}}}}  \}   \rrbracket \rangle  \rangle }{%
+ \mathcal{T}\llbracket   \{   \ottnt{T_{{\mathrm{1}}}} \to \ottnt{T_{{\mathrm{2}}}}   \}   \rrbracket =   \langle   \mathtt{PRODUCT }  ,   \langle   \mathcal{T}\llbracket   \{  \ottnt{T_{{\mathrm{1}}}}  \}   \rrbracket  ,   \mathcal{T}\llbracket   \{  \ottnt{T_{{\mathrm{2}}}}  \}   \rrbracket  \rangle  \rangle  }{%
 {\ottdrulename{EvTransformProd}}{}%
 }}
 
-\newcommand{\ottdefnEvTransform}[1]{\begin{ottdefnblock}[#1]{$\llbracket  \varepsilon  \rrbracket  =  \ottnt{u}$}{\ottcom{CPS Representation of Runtime Evidence}}
+\newcommand{\ottdefnEvTransform}[1]{\begin{ottdefnblock}[#1]{$ \mathcal{T}\llbracket  \varepsilon  \rrbracket =  \ottnt{u} $}{\ottcom{CPS Representation of Runtime Evidence}}
 \ottusedrule{\ottdruleEvTransformBool{}}
 \ottusedrule{\ottdruleEvTransformNat{}}
 \ottusedrule{\ottdruleEvTransformDyn{}}

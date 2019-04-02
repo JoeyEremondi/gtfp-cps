@@ -3,12 +3,16 @@
 
 \documentclass[10pt]{beamer}   
 
+\usepackage{fontspec}
+
 \usepackage{iftex} 
 % \ifPDFTeX{\PackageError{Latexmk}{Not in XeLatex}{Should be in XeLaTeX for proper font rendering }}\else\fi
 
+\newcommand\newlist{}
+\newcommand\renewlist{}
 
 \usepackage{amsmath,amssymb}
-\usepackage{supertabular}  
+\usepackage{supertabular}   
 % \usepackage[
 %      includeheadfoot, head=13pt, foot=2pc,
 %      paperwidth=6.75in, paperheight=10in,
@@ -28,7 +32,7 @@
 
 \usepackage{keyval}
 \usepackage{ifthen} 
-\usepackage{enumitem}   
+% \usepackage{enumitem}   
 
 \usepackage{amsthm}
 \usepackage{hyperref} 
@@ -73,6 +77,7 @@
 
 \usepackage{xspace}
 \newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
+
 
 
 \makeatletter
@@ -124,38 +129,39 @@
 
 \section{Source Language}
 
-\begin{frame}[fragile]{Term Syntax}
+\begin{frame}{Term Syntax}
 
   \nonterms{e,}
 \end{frame}
 
-\begin{frame}[fragile]{Type Syntax}
+\begin{frame}{Type Syntax}
 
   \nonterms{T}
   \nonterms{ep}
 \end{frame}
 
-\begin{frame}[fragile]{Type Rules}
+\begin{frame}{Type Rules}
   \begin{mathpar}
   \ottdruleHastypeAscr{} \\ 
   \ottdruleConsistentEv{} 
   \end{mathpar}
 \end{frame}
 
-\begin{frame}[fragile]{Combining Evidence}
+\begin{frame}{Combining Evidence}
   \ottdefnMeet{}                                            
 \end{frame}
 
-\begin{frame}[fragile]{Semantics}
+\begin{frame}{Semantics}
   \begin{mathpar}
-    \ottdruleRedAscr{} \\
+    \ottdruleRedAscr{} \qquad
     \ottdruleRedAscrFail{}\\
+    \ottdruleRedApp{}\\
     \ottdruleRedAppEv{}\\
     \ottdruleRedAppEvFail{}  
     \end{mathpar}                                          
 \end{frame}
  
-\begin{frame}[fragile]{Examples}
+\begin{frame}{Examples}
 
   \begin{itemize}
     \item 
@@ -174,7 +180,7 @@
 
 \section{The Target}
 
-\begin{frame}[fragile]{Simplified $\lambda^K$}
+\begin{frame}{Simplified $\lambda^K$}
 
   \begin{minipage}{0.45\textwidth}
   \nonterms{u}
@@ -188,13 +194,13 @@
 
 
 \section{The Translation}
-\begin{frame}[fragile]{Translating Evidence}
+\begin{frame}{Translating Evidence}
   Integer constants $[[BOOL]],[[NAT]],[[ARR]],[[PROD]],[[DYN]]$
 
   \ottdefnEvTransform{}
 \end{frame}
 
-\begin{frame}[fragile]{Evidence Operations}
+\begin{frame}{Evidence Operations}
   \begin{itemize}
     \item $[[MEET[u1, u2, k] ]]$
     \item Combines evidence representation $[[u1]]$ and $[[u2]]$, gives result to $[[k]]$
@@ -203,22 +209,32 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Translating Values}
+\begin{frame}{Translating Values}
 
   \ottdefnValTransform{} 
 \end{frame}
 
-\begin{frame}[fragile]{Translating Applications}
+\begin{frame}{Translating Terms}
+
+  \begin{itemize}
+    \item $[[ [|e|]k ==== t ]]$
+    \item Translates $[[e]]$ into CPS term $[[t]]$
+    \item Gives result to $[[k]]$  
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{E.g. Translating Applications}
 
   \begin{mathpar}
     \ottdruleTransformApp{} 
-  \end{mathpar}
+  \end{mathpar} 
 \end{frame}
 
  
 \section{Correctness}
 
-\begin{frame}[fragile]{Key Lemmas}
+\begin{frame}{Key Lemmas}
   \begin{itemize}
     \item $[[ MEET[ [|ep1|], [|ep2|], k ]   -->* k[ [|ep1 /\ ep2|] ]  ]]$
     \item If $[[ep1 /\ ep2]]$ undefined, then $[[ MEET[ [|ep1|], [|ep2|], k ] -->* error ]]$
@@ -227,7 +243,7 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Whole Program Correctness}
+\begin{frame}{Whole Program Correctness}
   \begin{itemize}
     \item 
     If $[[e1 --> e2]]$, then for any $[[k]]$, $[[ [|e1|]k ]] \equiv [[ [|e2|]k ]]$
@@ -236,13 +252,16 @@
     
     \item Simulation proved by induction on derivation of $[[e1 --> e2]]$
     
-    \item Corollary: if $eval([[e1]])= [[v]]$, then $eval([[ [|e|](\ x . halt[x]) ]]) = [[halt[ [|v|] ] ]]$.
+    \item Corollary: if $eval([[e1]])= [[v]]$, and $[[ [|v|] ==== ([|ep|], u) ]]$ then $eval([[ [|e|](\ x . halt[x]) ]]) = [[halt[ ([|ep'|], u) ] ]]$
+     for some $[[ep']]$
+     
+    \item Preserves observations modulo evidence  
   \end{itemize}
 \end{frame}
 
 \section{Incorrectness}
 
-\begin{frame}[fragile]{Type Preservation }
+\begin{frame}{Type Preservation }
   \begin{itemize}
     \item No notion of consistency in target language
     \item $[[(\ x : ? . x x)]]$ typeable in source
@@ -251,9 +270,9 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Full Abstraction }
+\begin{frame}{Full Abstraction }
   \begin{itemize}
-    \item $[[(\ x : Nat . x + 0 )]] \approx [[(\ x : Nat . (<<Nat>>x) + 0 )]]$
+    \item $[[(\ x : Nat . x + 0 )]] \approx [[(\ x : Nat . (<<Nat>>x) + 0 )]]$ 
     \item Distinguish by target context  $([[  __ (n,0)  ]])$ where $[[n]]\neq[[DYN]], [[n]] \neq [[NAT]]$
     \item Only causes $[[error]]$ in second case
   \end{itemize}

@@ -3,6 +3,7 @@
 \documentclass[11pt]{article}
 \usepackage{amsmath,amssymb}
 \usepackage{supertabular}  
+\usepackage{float}
 % \usepackage[  
 %      includeheadfoot, head=13pt, foot=2pc,
 %      paperwidth=6.75in, paperheight=10in,
@@ -18,16 +19,18 @@
 \usepackage{mathpartir}   
 \usepackage{stmaryrd}   
 
-\usepackage{libertine}
+\usepackage{libertine} 
 \usepackage{inconsolata}
 % \usepackage{libertinust1math}
 
 \usepackage{keyval}
-\usepackage{ifthen} 
+\usepackage{ifthen}  
 \usepackage{enumitem}   
 
-\usepackage{amsthm}
+\usepackage{amsthm} 
 \usepackage{hyperref} 
+\usepackage{natbib}   
+\bibliographystyle{unsrtnat}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{corollary}{Corollary}[section]
@@ -40,57 +43,185 @@
 \inputott{GTFL_defns}       
  
 \newcommand{\rrule}[1]{\rref*{#1}}
-
+ 
 
 \begin{document}
 
+\section{Introduction}
+
+Gradually typed languages
+
 \section{Source Language Syntax}
 
-\begin{figure}
+We take as our source language GTFL, a gradually-typed functional language
+with \textit{evidence}. Such a language is used as the result of
+elaboration in the framework of Abstracting Gradual Typing (AGT)~\citep{agt},
+and allows the meaning of gradual programs to be determined in terms of evidence.
+
+\subsection{Terms}
+
+The syntax for terms for GTFL is given in \autoref{fig:term-syntax}.
+The language is essentially a simply typed lambda calculus with
+integers, booleans, and base types, except that a term $[[e]]$
+may be ascribed with \textit{evidence} $[[epsilon]]$.
+This evidence contains typing information that evolves throughout the run of a program.
+We explain evidence in detail in \autoref{subsec:type-rules}.
+Because gradual typing may result in dynamic type errors, we have a special failure term $[[error]]$.
+
+Values are defined in the usual way, except that we do not allow a value to be
+ascribed multiple pieces of evidence. To enforce this syntactically, we separate \textit{raw values}
+(using the metavariable $[[r]]$), which do not contain evidence at the top-level,
+from general values (metavariable $[[v]]$), which ascribe a raw value with zero or one pieces of evidence.
+
+While the original presentation of AGT treated terms as intrinsically typed values,
+we adopt the simpler approach used by \citet{parametricityRevisited}, where evidence ascription
+is included in the syntax for terms.
+
+\begin{figure}[H] 
 	$[[n]] \in \mathbb{Z}$, $[[b]]\in\mathbb{B}$
 
 	\nonterms{e}
-	\nonterms{O}
 	\nonterms{v}
 	\nonterms{r}
 	\caption{Source Language Syntax: Terms}
 	\label{fig:term-syntax}
 \end{figure}
 
-\begin{figure}
+\subsection{Types}
+\label{subsec:source-types}
+
+As a gradually-typed language, the interesting features of GTFL are in its type system.
+The syntax for types, given in \autoref{fig:type-syntax}, matches what one expects in a simply-typed calculus, except that
+we have also introduced the \textit{unknown} or \textit{dynamic} type $[[?]]$.
+Any term can have be assigned type $[[?]]$, and a term of type $[[?]]$ can be used in
+any context without being rejected as ill-typed.
+
+To define our typing rules in \autoref{subsec:type-rules}, we need \textit{contexts}, which
+assign types to free program variables. Having types also allows us to precisely define what evidence is:
+each piece of evidence is simply a type. For the term $[[ep e]]$, $[[ep]]$ represents the most precise
+type knowledge we currently have about $[[e]]$, though as we will see below,
+$[[ep]]$ may not exactly match the type we treat $[[e]]$ as having.  
+
+
+\begin{figure}[H]
 
 	\nonterms{T}
-	\nonterms{ep}
 	\nonterms{Gamma}
+	\nonterms{ep}
 
 	\caption{Source Language Syntax: Types}
 	\label{fig:type-syntax}
 \end{figure}
 
-\section{Source Language Statics and Dynamics}
+\subsection{Static Semantics}
+\label{subsec:type-rules}
 
-\begin{figure}
+\begin{figure}[H]
 	\ottdefnHastype{}
 	\caption{Source Language: Type Rules}
 	\label{fig:source-typerules}
 \end{figure}
 
-\begin{figure}
+The typing rules for our language are given in \autoref{fig:source-typerules}.
+We assume that terms in this language are the result of a combined type-checking
+and elaboration pass. Because of this, the typing rules are not syntax directed,
+but mainly establish the safety of the language~\citep{agt}.
+Once again, the typing rules are entirely standard, except for \rrule{HastypeAscr}.
+This rule says that if $[[e]]$ has type $[[T2]]$, we give $[[ep e]]$ type $[[T1]]$
+provided that $[[ep]]$ is evidence that $[[T1]]$ and $[[T2]]$ are \textit{consistent}.
+
+
+We define consistency in terms of the precision meet operator: two types
+are consistent provided that some third type is more precise than both of them (\autoref{fig:source-precision}).
+We write $[[ep |- T1 ~=~ T2]]$ to mean that $[[ep]]$ is evidence of the consistency of $[[T1]]$ and $[[T2]]$.
+Such a relationship holds whenever $[[ep]]$ is at least as precise as both $[[T1]]$ and $[[T2]]$.
+
+The meet operator itself is defined in \autoref{fig:source-precision}. We wish $[[?]]$ to be consistent with any type,
+so $[[?]]$ acts as an identity for the meet operator. The meet of $[[T]]$ with itself is $[[T]]$, and
+the meet of function or arrow types is computed using the meet of the component types.
+Note that this is not subtyping: there is no contravariance in the rule for arrow types.
+
+Including a notion of consistency in our type system allows us to type terms that would be ill-typed
+in a fully-static language.
+For example, $[[1 + {Nat}({Bool} true)]]$ is well-typed in our language: $[[empty |- true : Bool ]]$,
+and $[[{Bool} |- Bool ~=~ ?]]$, so $[[empty |- {Bool}true : ? ]]$. Similarly, $[[Nat |- ? ~=~ Nat]]$,
+so $[[empty |- {Nat}({Bool}true)]]$, making the addition well-typed.
+
+We note that gradual typing usually begins with a definition of consistency, with precision and meet defined
+in terms of consistency. Since GTFL is not a contribution of our work, we keep our presentation small
+by defining operations in terms of meet. $[[T1]]$ and $[[T2]]$ are consistent if their meet exists,
+and $[[T1]]$ is more precise than $[[T2]]$ if $[[T1 /\ T2 ==== T1]]$.
+
+
+\begin{figure}[H]
 	\ottdefnConsistent{}
 	\ottdefnMeet{}
 	\caption{Source Language: Type Consistency and Precision}
 	\label{fig:source-precision}
 \end{figure}
 
-\begin{figure}
+\subsection{Runtime Semantics}
+
+\begin{figure}[H] 
 	\ottdefnsSemantics{}
 	\caption{Source Language: Small-Step Operational Semantics}
 	\label{fig:source-semantics}
 \end{figure}
 
+TODO: define domain, etc.
+
+As we saw above, $[[1 + {Nat}({Bool} true)]]$ was assigned a type in our language. But how should such a term behave?
+Allowing it to result in any integer value would require an arbitrary choice, so the only safe result
+of such a computation is $[[error]]$. Specifically, because values may only contain one piece of top-level evidence, 
+computation fails trying to combine the evidence objects $[[Bool]]$ and $[[Nat]]$, since their meet is undefined.
+
+We present the full semantics for GTFL in \autoref{fig:source-semantics.} In general, we have rules which one expects in a static language,
+plus rules accounting for values with evidence. When we have nested evidence it is combined with \rrule{RedAscr}. When applying a function
+using the rule \rrule{RedAppEv},
+we must first use domain information from the function's evidence to convert the argument to the type the function expects.
+The result is then ascribed with the codomain information from the function's evidence.
+These evidence operations mirror those of higher-order contracts~\citep{Findler:2002:CHF:581478.581484}.
+We decompose the evidence for pairs in a similar way for projections in \rrule{RedProjEv}.
+
+For primitive operations, we simply ignore evidence, as any well-typed values must have the appropriate type.
+Similarly, in \rrule{RedAppEvPartial}, if we apply a function with evidence to a raw value, then we treat the argument as if it had been
+ascribed evidence $[[?]]$.
+
+If any of the evidence operations in the above rules are undefined, then the only way to preserve safety
+is to step to $[[error]]$, which is what happens in \rrule{RedAppEvFail}, \rrule{RedProjFail} and \rrule{RedAscrFail}.
+Context frames are defined in \autoref{fig:source-contexts}, and \rrule{RedContext} allows us to step within any context frame.
+Similarly, errors are propagated with \rrule{RedContextFail}. The context rules establish a left-to-right, call-by-value
+evaluation order.
+
+While somewhat complex, basing a gradual language around evidence has several advantages.
+First, the AGT approach allows us to take a pre-existing static langauge and introduce gradual types. 
+Second, various properties of the language, such as type safety, hold by construction when using the evidence approach.
+
+
+
+\begin{figure}[H] 
+	\nonterms{C}
+	\caption{Source Language: Context Frames}
+	\label{fig:source-contexts}
+\end{figure} 
+
+
+
 \section{The Target Language}
 
-\begin{figure}
+Our target language, given in \autoref{fig:target-syntax}, is essentially an untyped version of the $\lambda^K$
+ calculus presented by \citet{FtoTAL}.
+ We have distinct syntactic classes for \textit{values} (metavarible $[[u]]$),
+ and \textit{terms} (metavariable $[[t]]$). Each syntactic form for terms denotes
+ a single operation on a value, and any nested computations must be explicitly
+ represented with the passing of continuations.
+ We do not provide a semantics for the target, but note that it is straightforward,
+ using $\beta$-reductions, substitution for $\ottkw{let}$, and primitive operations in the usual way.
+ 
+ Notably, our target language is \textit{not} gradual. Because gradual types let us write terms that have no purely static type,
+ we treat our target as untyped typed. 
+
+\begin{figure}[H]
 	\nonterms{u}
 	\nonterms{d}
 	\nonterms{t}
@@ -98,7 +229,7 @@
 	\label{fig:target-syntax}
 \end{figure}
 
-\section{The Translation}
+\section{The Translation} 
 
 \subsection{Translating Evidence}
 
@@ -121,7 +252,7 @@ We give an example implementation for $\ottkw{dom}$ in \autoref{fig:dom-impl}: e
 and return $[[?]]$, we are given $[[T1 -> T2]]$ and we return $[[T1]]$, or we raise an exception.
 We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are implemented similarly.
 
-\begin{figure}
+\begin{figure}[H]
 	\begin{align*}
 		 & [[MEET]] & = & [[fix self \ ty1 ty2 c . let tag1 := pi1 ty1 in let sub1 := pi2 ty1 in let isDyn1 := tag1 == DYN in  \\ ]]
 		 &          &   & [[ if isDyn1 c[ty2]                                                                                  \\ ]]
@@ -152,7 +283,7 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 	\label{fig:meet-impl}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
 	\begin{align*}
 		 & [[DOM]] & = & [[\ ty c . let tag := pi1 ty1 in let sub := pi2 ty1 in let isDyn := tag == DYN in \\ ]]
 		 &         &   & [[ if isDyn c[(DYN,0)]                                                            \\ ]]
@@ -164,19 +295,19 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 	\label{fig:dom-impl}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
 	\ottdefnTransform
-	\caption{Translation: Terms and Programs}
+	\caption{Translation: Terms and Programs}  
 	\label{fig:trans-terms}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
 	\ottdefnEvTransform
 	\caption{Translation: Evidence}
 	\label{fig:trans-types}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
 	\ottdefnValTransform
 	\caption{Translation: Evidence}
 	\label{fig:trans-values}
@@ -191,7 +322,7 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 		\item $[[MEET[ [|ep|], [|ep'|], k ] -->* k[ [| ep /\ ep' |] ] ]]$ if $[[ep /\ ep']]$ is defined.
 		\item If $[[ep /\ ep']]$ is undefined, then $[[MEET[ [|ep|], [|ep'|] ] -->* error ]]$.
 	\end{itemize}
-	The same property holds for $[[dom ep]]$, $[[cod ep]]$, and $[[Proj@i ep]]$.
+	The same property holds for $[[dom ep]]$, $[[cod ep]]$, and $[[Prod@i ep]]$. 
 \end{lemma}
 
 \begin{lemma}[Canonical Forms for Translated Values]
@@ -226,16 +357,15 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 		      So we can then $\beta$-reduce and apply the let-substitutions to reach $[[ MEET[ [|ep|], DYN, u ]  ]]$.
 		      By \autoref{lem:ev-correct}, this steps to $[[([|ep|], u)]]$.
 		      By the rule \rrule{TransformEv}, this means that $[[ [|ep r|] ]]$ also steps to this value.
+ 
 
-
-		      TODO 
 	\end{itemize}
 \end{proof}
 
 \begin{lemma}[Translation Commutes With Substitution]
 	\label{lem:subst-commut}
-	$[[ [|[x |=> v]e|]k -->* [x |=> [|v|] ][|e|]k   ]]$. 
-\end{lemma}
+	$[[ [|[x |=> v]e|]([x |=> [|v|] ]k) -->* [x |=> [|v|] ][|e|]k   ]]$.   
+\end{lemma} 
 \begin{proof}
 	Follows from straightforward induction on $[[e]]$, combined with \autoref{lem:value-expr-trans}
 	for the case where $[[e]]=[[x]]$.
@@ -270,6 +400,8 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 		      we can use the same reasoning from RedIfTrue to show that it steps to $[[e2]]$ if $[[b]]$ is true, and $[[e3]]$ if $[[b]]$ is false.
  
 		\item \rrule{RedApp}: then $[[e1]] = [[ (\ x : T . e') v ]]$ and $[[e2]]=[[ [x |=> v]e' ]]$.
+		We assume our terms follow variable convention so that $[[x]]$ is not free in $[[k]]$.
+
 		Let $[[( [|ep|], u)]] = [[ [|v|] ]]$ (by \autoref{lem:canonical-trans}).
         If we apply \autoref{lem:value-expr-trans}, we can see that $[[ [|(\ x : T . e') v|]k ]]$
         steps to \\$[[ (\ x1  x2. let y1 := pi1 x1 in ,,,)[(DYN, (\ x c . [|e'|]c )), ( [|ep|], u) ]  ]]$.
@@ -283,7 +415,7 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 		But, then, by \autoref{lem:ev-correct} and $\eta$-equivalence, this is equivalent to
 		$[[  [ x |=> ([|ep|], u) ][|e'|]k  ]]$.
 		But we know that this is $[[  [ x |=> [|v|] ][|e'|]k  ]]$ 
-		Finally, \autoref{lem:subst-commut} gives us that
+		Finally, our variable convention and \autoref{lem:subst-commut} give us that 
 		this is equivalent to $[[ [| [x |=> v]e' |]k  ]]$.
 
 		\item \rrule{RedAppEv}: then $[[e1]] = [[ ep1 (\ x : T . e') ep2 v ]]$ and $[[e2]]=[[ cod ep1 ([x |=> (dom ep1 /\ ep2) v]e') ]]$.
@@ -301,10 +433,111 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 		% $[[  [ x |=> ([|dom ep1 /\ep2|], u) ][|e'|]k  ]]$.
 		But, by the rule \rrule{TransformEv}, this is $\alpha$-equivalent to  $[[ [|cod ep1 ([x |=> (dom ep1 /\ ep2) v]e')|]k ]]$,
 		giving us our result.
-		 
+
+		\item \rrule{RedAppEvFail}: then $[[e1]] = [[ ep1 (\ x : T . e') ep2 v ]]$ and $[[e2]]=[[ error ]]$.
+		Let $[[( [|ep2|], u)]] = [[ [|v|] ]]$ (by \autoref{lem:canonical-trans}).
+        If we apply \autoref{lem:value-expr-trans}, we can see that $[[  [|ep1 (\ x : T . e') ep2 v|]k ]]$
+        steps to \\$[[ (\ x1  x2. let y1 := pi1 x1 in ,,,)[( [|ep1|] , (\ x c . [|e'|]c )), ( [|ep2|], u) ]  ]]$.
+        We can $\beta$-reduce and apply the let-substitutions to then step to
+        \\$[[ DOM [ [|ep1|] , \y1' . COD [  [|ep1|] , \y1''. MEET [y1', [|ep2|], (\ y3 . (\ x c . [|e'|]c ) [(y3, u), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')] ) ] ) ] )] ] ] ]]$.
+        By applying \autoref{lem:ev-correct} for $[[MEET]]$ with our premise that $[[dom ep1 /\ ep2 undefined]]$
+		we can step to  $[[error]]$.
+		
+		\item \rrule{RedAppEvPartial}: the same reasoning as \rrule{RedAppEv}, except that by \autoref{lem:value-expr-trans},
+		we know that the argument's translation is annotated with $[[?]]$.
+
+		\item \rrule{RedAppEvFailPartial}: the same reasoning as \rrule{RedfAppEvFail}, except for $[[DOM]]$ instead of $[[MEET]]$.
+		\item \rrule{RedPlus}, \rrule{RedEqT}, \rrule{RedEqF}, \rrule{RedProj}: trivial.
+		\item \rrule{RedPlusEvL}, \rrule{RedPlusEvR}, \rrule{RedEqEvL}, \rrule{RedEqEvR}: follows from our induction hypothesis, combined with the fact that the \rrule{TransformPlus} and \rrule{TransformEq} both ignore evidence.
+		
+		\item \rrule{RedProj} Then $[[e1]]=[[pi @ i (v1 , v2)]]$ and $[[e2]] = [[vi]]$. 
+		Then combining \rrule{TransformProj} with \autoref{lem:canonical-trans} and \autoref{lem:value-expr-trans},
+		we have $[[ [|pi @ i (v1 , v2)|]k  ]]$ steps to $[[(\ x . let y1 := pi1 x in ,,,)[(DYN, ([|v1|], [|v2|] ) ) ] ]]$.
+		If we $\beta$-reduce and substitute for the let-expressions, we get $[[PROD @ i [DYN, (\ z1 . ,,,)] ]]$.
+		We apply \autoref{lem:ev-correct} and let-substitution to step to $[[ MEET[DYN, u1, (\z1' . k [(z1', u2)] )] ]]$,
+		where $[[ [|vi|] ]] = [[(u1, u2)]]$ by \autoref{lem:canonical-trans}.
+		By \autoref{lem:ev-correct} this steps to $[[ k [(u1, u2)] ]]$
+		 which we can also step to
+		from $[[ [|vi|]k ]]$ by \autoref{lem:value-expr-trans}.
+
+		\item \rrule{RedProjEv} Then $[[e1]]=[[pi @ i (ep (v1 , v2))]]$ and $[[e2]] = [[(Prod@i ep) vi]]$. 
+		Then combining \rrule{TransformProj} with \autoref{lem:canonical-trans} and \autoref{lem:value-expr-trans},
+		we have $[[ [|pi @ i (v1 , v2)|]k  ]]$ steps to $[[ (\ x . let y1 := pi1 x in ,,,)[ ( [|ep|], ([|v1|], [|v2|] ))] ]]$.
+		If we $\beta$-reduce, and substitute for the let-expressions, we get $[[ PROD @ i [ [|ep|], (\ z1 . ,,,)] ]]$.
+		We apply \autoref{lem:ev-correct} and let-substitution to step to $[[ MEET[ [|Prod @ i ep|], u1, (\z1' . k [(z1', u2)] )] ]]$,
+		where $[[ [|vi|] ]] = [[(u1, u2)]]$ by \autoref{lem:canonical-trans}.
+
+		Looking now at $[[e2]]$, we can apply \rrule{TransformEv} and \autoref{lem:canonical-trans}, then $\beta$-reduce
+		and substitute
+		to see that $[[ [|(Prod@i ep) vi|]k ]]$ also setps to $[[ MEET[ [|Prod @ i ep|], u1, (\z1' . k [(z1', u2)] )] ]]$.   
+		
+		\item \rrule{RedProjFail}
+		Then $[[e1]]=[[pi @ i (ep (v1 , v2))]]$ and $[[e2]] = [[error]]$. 
+		Then combining \rrule{TransformProj} with \autoref{lem:canonical-trans} and \autoref{lem:value-expr-trans},
+		we have $[[ [|pi @ i (v1 , v2)|]k  ]]$ steps to $[[ (\ x . let y1 := pi1 x in ,,,)[ ( [|ep|], ([|v1|], [|v2|] ))] ]]$.
+		If we $\beta$-reduce, and substitute for the let-expressions, we get $[[ PROD @ i [ [|ep|], (\ z1 . ,,,)] ]]$.
+		We then apply \autoref{lem:ev-correct} and let-substitution to step to $[[error]]$. 
+
+		\item \rrule{RedAscr}
+		Then $[[e1]]=[[ep1 (ep2 r)]]$ and $[[e2]]=[[(ep1 /\ ep2) r]]$.
+		Applying \rrule{TransformEv} with \autoref{lem:canonical-trans} and and \autoref{lem:value-expr-trans}, we can see that
+		this steps to $[[MEET[ [|ep1|], [|ep2|], (\ y . k[(y, u2) ]) ] ]]$
+		where $[[ [|ep2 r|] ]] = [[ ([|ep2|], u2) ]]$. By \autoref{lem:ev-correct}, this steps to $[[ k [([| ep1 /\ ep2 |], u2)] ]]$,
+		which we can also step to from $[[ [|(ep1 /\ ep2) r|]k ]]$ by \autoref{lem:value-expr-trans}.
+
+
+		\item \rrule{RedAscrFail}
+		Then $[[e1]]=[[ep1 (ep2 r)]]$ and $[[e2]]=[[error]]$.
+		Applying \rrule{TransformEv} with \autoref{lem:canonical-trans} and and \autoref{lem:value-expr-trans}, we can see that
+		this steps to $[[MEET[ [|ep1|], [|ep2|], (\ y . k[(y, u2) ]) ] ]]$
+		where $[[ [|ep2 r|] ]] = [[ ([|ep2|], u2) ]]$. By \autoref{lem:ev-correct} along with our premise, this steps to $[[error]]$.
+
+		\item \rrule{RedContext}: Then $[[e1]]=[[C[e1'] ]] $ and $[[e2]]=[[C[e2'] ]] $ where $[[e1' --> e2']]$.
+		By our hypothesis, $[[ [|e1|]k ]] \equiv [[ [|e2|]k ]]$ for any $[[k]]$.
+ 
+		Suppose that $[[C]]$ is one of $[[ __ e]]$, $[[(__, e)]]$, $[[pi1 __]]$, $[[pi2 __]]$, $[[ep __]]$,
+		$[[__ + e]]$, $[[__ == e]]$ or $[[if __ then e3 else e4]]$. These are the cases where the hole is the ``first''
+		sub-expression. 
+		In each case, there exists some $[[k']]$ such that $[[ [|C[e1'] |]k ==== [|e1'|]k' ]]$ and 
+		$[[ [|C[e2'] |]k ==== [|e2'|]k' ]]$. By our hypothesis, these terms are equal.
+		
+		The remaining cases are when the first sub-expression is already a value, and the context frame hole is the second sub-expression.
+		In these cases, there exists some $[[v]]$ (the first sub-expression) and $[[k']]$
+		such that $[[ [|C[e1'] |]k ==== [|v|](\x . [|e1'|]k' ) ]]$ and $[[ [|C[e2'] |]k ==== [|v|](\x . [|e2'|]k' ) ]]$.
+		We assume the bound variable $[[x]]$ is fresh, that is, it does not occur in $[[e1']]$ or $[[e2']]$.
+		We can apply \autoref{lem:value-expr-trans} to show that these step to $[[ [x |=> [|v|] ][|e1'|]k' ]]$
+		and $[[ [x |=> [|v|] ][|e2'|]k' ]]$ respectively. \autoref{lem:subst-commut} and our freshness assumption 
+		shows that these are equivalent to
+		$[[ [| e1' |]( [x |=> [|v|] ]k ) ]]$ and $[[ [| e2' |]([x |=> [|v|] ]k') ]]$ respectively.
+		Finally, our hypothesis shows that these two terms are equivalent.
+
+		\item \rrule{RedContextFail}: then $[[e1]]=[[C[e1'] ]] $ and $[[e2]]=[[error]] $ where $[[e1' --> error]]$.
+		By our hypothesis, $[[ [|e1'|]k ]] \equiv [[ error ]]$ for any $[[k]]$.
+
+		Suppose that $[[C]]$ is one of $[[ __ e]]$, $[[(__, e)]]$, $[[pi1 __]]$, $[[pi2 __]]$, $[[ep __]]$,
+		$[[__ + e]]$, $[[__ == e]]$ or $[[if __ then e3 else e4]]$. These are the cases where the hole is the ``first''
+		sub-expression. 
+		In each case, there exists some $[[k']]$ such that $[[ [|C[e1'] |]k ==== [|e1'|]k' ]]$. By our hypothesis,
+		this steps to $[[error]]$.
+
+		
+		The remaining cases are when the first sub-expression is already a value, and the context frame hole is the second sub-expression.
+		In these cases, there exists some $[[v]]$ (the first sub-expression) and $[[k']]$
+		such that $[[ [|C[e1'] |]k ==== [|v|](\x . [|e1'|]k' ) ]]$ .
+		We assume the bound variable $[[x]]$ is fresh, that is, it does not occur in $[[e1']]$.
+		We can apply \autoref{lem:value-expr-trans} to show that this steps to $[[ [x |=> [|v|] ][|e1'|]k' ]]$.
+		 \autoref{lem:subst-commut} and our freshness assumption 
+		show that this is equivalent to
+		$[[ [| e1' |]([x |=> [|v|] ]k') ]]$, which, by our hypothesis,
+		steps to $[[error]]$.
+		
+
+		  
 	\end{itemize}
 \end{proof}
  
 \section{Incorrectness}
+
+\bibliography{myrefs}  
 
 \end{document}
