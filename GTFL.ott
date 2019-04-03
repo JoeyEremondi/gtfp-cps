@@ -155,37 +155,35 @@ C :: C ::=                               {{ com Context Frames }}
   | if __ then e1 else e2 :: :: If
 
 
-u {{tex \Ltarget{u} }} , k {{tex \Ltarget{k} }} :: CPSValue ::= 
-  | x :: :: Var {{tex \red{[[x]]} }}
-  | n :: :: Nat {{tex \red{[[n]]} }}
-  | b :: :: Bool {{tex \red{[[b]]} }}
-  | fix x u :: :: Fix {{tex \red{\ottkw{fix} [[x]]} [[u]]  }}
-  |  \ vars . t  :: :: Fun {{tex \red{\lambda [[vars]]}\ldotp [[t]] }}
-  | ( u1 , u2 ) :: :: Pair {{tex \red{\langle} [[u1]] \red{,} [[u2]]\red{\rangle} }}
-  | \red{(} u \red{)} :: M :: Parens
-  | MEET :: M :: MeetFun {{tex \red\mathtt{MEET } }}
-  | DOM ::  M :: DomFun {{tex \red\mathtt{DOM } }}
-  | COD :: M :: CodFun {{tex \red\mathtt{COD } }}
-  | PROD1 :: M :: Prod1 {{tex \red\mathtt{PROD}_1 }}
-  | PROD2 :: M :: Prod2 {{tex \red\mathtt{PROD}_2 }}
-  | PROD @ i :: M :: Prodi {{tex \red\mathtt{PROD}_\black{[[i]]} }}
-  | [| ep |] :: M :: TTrans {{tex \black\mathcal{T}\black\llbracket [[ep]] \black\rrbracket}}
-  | [| v |] :: M :: VTrans {{tex \black\mathcal{V}\black\llbracket [[v]] \black\rrbracket}}
-  | [ x |=> u ] u' :: M :: Subst {{tex  \black[ [[u]] \black/ [[x]] \black] [[u']] }}
+u , k :: CPSValue ::= 
+  | x :: :: Var
+  | n :: :: Nat
+  | b :: :: Bool
+  | fix x u :: :: Fix
+  |  \ x1 ... xi . t  :: :: Fun 
+  | ( u1 , u2 ) :: :: Pair {{tex \langle [[u1]], [[u2]]\rangle }}
+  | ( u ) :: M :: Parens
+  | MEET :: M :: MeetFun {{tex \mathtt{MEET } }}
+  | DOM ::  M :: DomFun {{tex \mathtt{DOM } }}
+  | COD :: M :: CodFun {{tex \mathtt{COD } }}
+  | PROD1 :: M :: Prod1 {{tex \mathtt{PROD}_1 }}
+  | PROD2 :: M :: Prod2 {{tex \mathtt{PROD}_2 }}
+  | PROD @ i :: M :: Prodi {{tex \mathtt{PROD}_{[[i]]} }}
+  | [| ep |] :: M :: TTrans {{tex \mathcal{T}\llbracket [[ep]] \rrbracket}}
+  | [| v |] :: M :: VTrans {{tex \mathcal{V}\llbracket [[v]] \rrbracket}}
+  | [ x |=> u ] u' :: M :: Subst {{tex  [ [[u]] / [[x]] ] [[u']] }}
 
-vars {{tex \red{\mathrm{x}_\black{1} }\ldots \red{\mathrm{x}_\black{i} } }} :: vars ::= 
-  | x1 .. xi :: :: Vars
-
-d {{ tex \Ltarget{d} }} :: CPSDecl ::=
-  | x := u :: :: Def {{tex \red{[[x]] :=} [[u]] }}
-  | x := pi1 u :: :: Proj1 {{tex \red{[[x]] := \pi_1} [[u]] }}
-  | x := pi2 u :: :: Proj2 {{tex \red{[[x]] := \pi_2} [[u]] }}
-  | x := u1 + u2 :: :: Plus {{tex \red{[[x]] := } [[u1]] \red{+} [[u2]] }}
-  | x := u1 == u2 :: :: Eq  {{tex \red{[[x]] := } [[u1]] \red{\stackrel{?}{=} } [[u2]] }}
-  | x := pi @ i u :: M :: Proji {{tex [[x]] := \red{\pi}_\black{[[i]]}\ [[u]] }}
+d :: CPSDecl ::=
+  | x := u :: :: Def
+  | x := pi1 u :: :: Proj1
+  | x := pi2 u :: :: Proj2
+  | x := u1 + u2 :: :: Plus
+  | x := u1 == u2 :: :: Eq
+  | x := pi @ i u :: M :: Proji {{tex [[x]] := \pi_{[[i]]}\ [[u]] }}
 
 
-t {{tex \Ltarget{d} }} :: CPS ::= 
+t :: CPS ::= 
+  | v :: :: Value 
   | let d in t :: :: Let
   | u [ arg ] :: :: App {{tex [[u]]([[arg]])}} 
   | if u t1 t2 :: :: If {{tex \ottkw{ if }\ [[u]]\ \ottkw{ then }\ [[t1]]\ \ottkw{ else }\ [[t2]] }}
@@ -202,7 +200,7 @@ t {{tex \Ltarget{d} }} :: CPS ::=
   | else t :: M :: Else {{tex \ottkw{ else }\ [[t]]  }}
   | ,,, :: M :: Ldots {{tex \ldots}}
 
-arg {{tex \red{\mathrm{u}_\black{1} }\ldots \red{\mathrm{u}_\black{i} } }}  :: Arg ::=
+arg :: Arg ::=
   | u1 , ... , ui :: :: Seq
 
 

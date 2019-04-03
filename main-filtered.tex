@@ -1,0 +1,660 @@
+% !TeX root = main.tex
+%!TeX spellcheck = en-US
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{supertabular}  
+\usepackage{float}
+% \usepackage[  
+%      includeheadfoot, head=13pt, foot=2pc,
+%      paperwidth=6.75in, paperheight=10in,
+%      top=58pt, bottom=44pt, inner=46pt, outer=46pt,
+%      marginparwidth=2pc,heightrounded
+% ]{geometry}  
+\usepackage{geometry}
+\usepackage{ifthen}  
+% \usepackage{pdflscape}   
+% \usepackage{alltt}%hack 
+% \geometry{a4paper,dvips,twoside,left=22.5mm,right=22.5mm,top=20mm,bottom=30mm}
+\usepackage{color}    
+\usepackage[dvipsnames]{xcolor}
+\newcommand{\blue}[1]{ {\color{RoyalBlue}{{#1}}} }
+\newcommand{\black}[1]{ {\color{Black}{{#1}}} }
+\newcommand{\red}[1]{ {\color{BrickRed}{{#1}}} }
+
+
+
+
+\usepackage{mathpartir}   
+\usepackage{stmaryrd}   
+
+\usepackage{libertine} 
+\usepackage{inconsolata}
+% \usepackage{libertinust1math}
+
+\usepackage{keyval}
+\usepackage{ifthen}  
+\usepackage{enumitem}   
+
+\usepackage{amsthm} 
+\usepackage{hyperref} 
+\usepackage{natbib}   
+\bibliographystyle{unsrtnat}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newcommand*{\lemmaautorefname}{Lemma}
+
+\newcommand{\abe}{\ensuremath{\alpha\beta\eta}}
+ 
+\usepackage[implicitPremiseBreaks]{ottalt}  
+\newcommand{\targetstyle}[3]{\color{BrickRed}\mathrm{ {#1}_{#2}#3 } }
+\newcommand{\sourcestyle}[3]{\color{RoyalBlue}\mathsf{ {#1}_{#2}#3 } }
+\newNTclass{source} 
+
+\newsource[\NTCAPTURELOW{\sourcestyle }]{e}{e}  
+\newsource[\NTCAPTURELOW{\sourcestyle }]{r}{r}  
+\newsource[\NTCAPTURELOW{\sourcestyle }]{v}{v}
+\newsource[\NTCAPTURELOW{\sourcestyle }]{T}{\tau}
+\newsource[\NTCAPTURELOW{\sourcestyle }]{ep}{\varepsilon}
+\newsource[\NTCAPTURELOW{\sourcestyle }]{Gamma}{\Gamma} 
+
+\newNTclass{Ltarget}
+\newLtarget[\NTCAPTURELOW{\targetstyle }]{u}{u}
+\newLtarget[\NTCAPTURELOW{\targetstyle }]{k}{k}
+\newLtarget[\NTCAPTURELOW{\targetstyle }]{d}{d}
+\newLtarget[\NTCAPTURELOW{\targetstyle }]{t}{t} 
+
+\inputott{GTFL_defns}       
+ 
+\newcommand{\rrule}[1]{\rref*{#1}}
+
+
+ 
+
+\begin{document}
+
+\section{Introduction}
+
+Gradually typed languages
+
+\section{Source Language Syntax}
+
+We take as our source language GTFL, a gradually-typed functional language
+with \textit{evidence}. Such a language is used as the result of
+elaboration in the framework of Abstracting Gradual Typing (AGT)~\citep{agt},
+and allows the meaning of gradual programs to be determined in terms of evidence.
+
+\subsection{Terms}
+ 
+The syntax for terms for GTFL is given in \autoref{fig:term-syntax}.
+The language is essentially a simply typed lambda calculus with
+integers, booleans, and base types, except that a term $\source{e}$ 
+may be ascribed with \textit{evidence} $\mathtt{ epsilon }$.
+This evidence contains typing information that evolves throughout the run of a program.
+We explain evidence in detail in \autoref{subsec:type-rules}.
+Because gradual typing may result in dynamic type errors, we have a special failure term $\ottkw{error}$.
+
+Values are defined in the usual way, except that we do not allow a value to be
+ascribed multiple pieces of evidence. To enforce this syntactically, we separate \textit{raw values}
+(using the metavariable $\source{r}$), which do not contain evidence at the top-level,
+from general values (metavariable $\source{v}$), which ascribe a raw value with zero or one pieces of evidence.
+
+While the original presentation of AGT treated terms as intrinsically typed values,
+we adopt the simpler approach used by \citet{Toro:2019:GPR:3302515.3290330}, where evidence ascription
+is included in the syntax for terms. 
+
+\begin{figure}[H] 
+	$\ottnt{n} \in \mathbb{Z}$, $b\in\mathbb{B}$
+
+	\nonterms{e}
+	\nonterms{v}
+	\nonterms{r}
+	\caption{Source Language Syntax: Terms}
+	\label{fig:term-syntax}
+\end{figure}
+
+\subsection{Types}
+\label{subsec:source-types}
+
+As a gradually-typed language, the interesting features of GTFL are in its type system.
+The syntax for types, given in \autoref{fig:type-syntax}, matches what one expects in a simply-typed calculus, except that
+we have also introduced the \textit{unknown} or \textit{dynamic} type $ \blue{?} $.
+Any term can have be assigned type $ \blue{?} $, and a term of type $ \blue{?} $ can be used in
+any context without being rejected as ill-typed.
+
+To define our typing rules in \autoref{subsec:type-rules}, we need \textit{contexts}, which
+assign types to free program variables. Having types also allows us to precisely define what evidence is:
+each piece of evidence is simply a type. For the term $\source{ep} \, \source{e}$, $\source{ep}$ represents the most precise
+type knowledge we currently have about $\source{e}$, though as we will see below,
+$\source{ep}$ may not exactly match the type we treat $\source{e}$ as having.  
+
+
+\begin{figure}[H]
+
+	\nonterms{T}
+	\nonterms{Gamma}
+	\nonterms{ep}
+
+	\caption{Source Language Syntax: Types}
+	\label{fig:type-syntax}
+\end{figure}
+
+\subsection{Static Semantics}
+\label{subsec:type-rules}
+
+\begin{figure}[H]
+	\ottdefnHastype{}
+	\caption{Source Language: Type Rules}
+	\label{fig:source-typerules}
+\end{figure}
+
+The typing rules for our language are given in \autoref{fig:source-typerules}.
+We assume that terms in this language are the result of a combined type-checking
+and elaboration pass. Because of this, the typing rules are not syntax directed,
+but mainly establish the safety of the language~\citep{agt}.
+Once again, the typing rules are entirely standard, except for \rrule{HastypeAscr}.
+This rule says that if $\source{e}$ has type $\source{T}_{{\mathrm{2}}}$, we give $\source{ep} \, \source{e}$ type $\source{T}_{{\mathrm{1}}}$
+provided that $\source{ep}$ is evidence that $\source{T}_{{\mathrm{1}}}$ and $\source{T}_{{\mathrm{2}}}$ are \textit{consistent}.
+
+
+We define consistency in terms of the precision meet operator: two types
+are consistent provided that some third type is more precise than both of them (\autoref{fig:source-precision}).
+We write $\source{ep}  \vdash  \source{T}_{{\mathrm{1}}}  \cong  \source{T}_{{\mathrm{2}}}$ to mean that $\source{ep}$ is evidence of the consistency of $\source{T}_{{\mathrm{1}}}$ and $\source{T}_{{\mathrm{2}}}$.
+Such a relationship holds whenever $\source{ep}$ is at least as precise as both $\source{T}_{{\mathrm{1}}}$ and $\source{T}_{{\mathrm{2}}}$.
+
+The meet operator itself is defined in \autoref{fig:source-precision}. We wish $ \blue{?} $ to be consistent with any type,
+so $ \blue{?} $ acts as an identity for the meet operator. The meet of $\source{T}$ with itself is $\source{T}$, and
+the meet of function or arrow types is computed using the meet of the component types.
+Note that this is not subtyping: there is no contravariance in the rule for arrow types.
+
+Including a notion of consistency in our type system allows us to type terms that would be ill-typed
+in a fully-static language.
+For example, $ \ottsym{1}  \blue{\boldsymbol{+} }   \{   \blue{\mathsf{Nat} }   \}  \,  \blue{(}   \{   \blue{\mathsf{Bool} }   \}  \,  \blue{ \ottkw{true} }   \blue{)}  $ is well-typed in our language: $ \cdot   \vdash   \blue{ \ottkw{true} }   \ottsym{:}   \blue{\mathsf{Bool} } $,
+and $ \{   \blue{\mathsf{Bool} }   \}   \vdash   \blue{\mathsf{Bool} }   \cong   \blue{?} $, so $ \cdot   \vdash   \{   \blue{\mathsf{Bool} }   \}  \,  \blue{ \ottkw{true} }   \ottsym{:}   \blue{?} $. Similarly, $ \{   \blue{\mathsf{Nat} }   \}   \vdash   \blue{?}   \cong   \blue{\mathsf{Nat} } $,
+so $ \cdot   \vdash   \{   \blue{\mathsf{Nat} }   \}  \,  \blue{(}   \{   \blue{\mathsf{Bool} }   \}  \,  \blue{ \ottkw{true} }   \blue{)}   \ottsym{:}   \blue{\mathsf{Nat} } $, making the addition well-typed.
+
+The meet operation gives us a means to combine different pieces of evidence for a value,
+which allows evidence to evolve and gain precision as a program runs.
+However, we also need operations on types, to extract typing information for particular
+components of a type, such as the domain and codomain of a function. These operations are partial: they produce $ \blue{?} $ 
+when given $ \blue{?} $, produce a result when given a type of the expected shape, and are undefined otherwise.
+We define these operations in \autoref{fig:type-ops}.
+
+We note that gradual typing usually begins with a definition of consistency, with precision and meet defined
+in terms of consistency. Since GTFL is not a contribution of our work, we keep our presentation small
+by defining operations in terms of meet. $\source{T}_{{\mathrm{1}}}$ and $\source{T}_{{\mathrm{2}}}$ are consistent if their meet exists,
+and $\source{T}_{{\mathrm{1}}}$ is more precise than $\source{T}_{{\mathrm{2}}}$ if $ \source{T}_{{\mathrm{1}}}  \sqcap  \source{T}_{{\mathrm{2}}}  =  \source{T}_{{\mathrm{1}}} $.
+
+
+\begin{figure}[H]
+	\ottdefnConsistent{}
+	\ottdefnMeet{}
+	\caption{Source Language: Type Consistency and Precision}
+	\label{fig:source-precision}
+\end{figure}
+
+
+\begin{figure}[H]
+	\begin{align*}
+	& \ottkw{dom} \,  \blue{( }  \source{T}_{{\mathrm{1}}} \blue{\to} \source{T}_{{\mathrm{1}}}   \blue{)}  & = && \source{T}_{{\mathrm{1}}} \\ 
+	& \ottkw{dom} \,  \blue{?}  & = &&  \blue{?}  \\
+	& \ottkw{cod} \,  \blue{( }  \source{T}_{{\mathrm{1}}} \blue{\to} \source{T}_{{\mathrm{1}}}   \blue{)}  & = && \source{T}_{{\mathrm{2}}} \\ 
+	& \ottkw{cod} \,  \blue{?}  & = &&  \blue{?}  \\
+	&  \ottkw{Proj}_{ i }   \blue{( }  \source{T}_{{\mathrm{1}}} \blue{\times} \source{T}_{{\mathrm{2}}}   \blue{)}   & = && \source{T}_{\ottmv{i}} && i\in\{1,2\} \\ 
+	&  \ottkw{Proj}_{ i }   \blue{?}   & = &&  \blue{?}  
+	\end{align*}
+	\caption{Source Language: Partial Type Operations}
+	\label{fig:type-ops} 
+\end{figure}
+
+\subsection{Runtime Semantics}
+
+\begin{figure}[H]  
+	\ottdefnsSemantics{} 
+	\caption{Source Language: Small-Step Operational Semantics}
+	\label{fig:source-semantics}
+\end{figure}
+
+
+As we saw above, $ \ottsym{1}  \blue{\boldsymbol{+} }   \{   \blue{\mathsf{Nat} }   \}  \,  \blue{(}   \{   \blue{\mathsf{Bool} }   \}  \,  \blue{ \ottkw{true} }   \blue{)}  $ was assigned a type in our language. But how should such a term behave?
+Allowing it to result in any integer value would require an arbitrary choice, so the only safe result
+of such a computation is $\ottkw{error}$. Specifically, because values may only contain one piece of top-level evidence, 
+computation fails trying to combine the evidence objects $ \blue{\mathsf{Bool} } $ and $ \blue{\mathsf{Nat} } $, since their meet is undefined.
+
+We present the full semantics for GTFL in \autoref{fig:source-semantics}. In general, we have rules which one expects in a static language,
+plus rules accounting for values with evidence. When we have nested evidence it is combined with \rrule{RedAscr}. When applying a function
+using the rule \rrule{RedAppEv},
+we must first use domain information from the function's evidence to convert the argument to the type the function expects.
+The result is then ascribed with the codomain information from the function's evidence.
+These evidence operations mirror those of higher-order contracts~\citep{Findler:2002:CHF:581478.581484}.
+We decompose the evidence for pairs in a similar way for projections in \rrule{RedProjEv}.
+
+For primitive operations, we simply ignore evidence, as any well-typed values must have the appropriate type.
+Similarly, in \rrule{RedAppEvPartial}, if we apply a function with evidence to a raw value, then we treat the argument as if it had been
+ascribed evidence $ \blue{?} $.
+
+If any of the evidence operations in the above rules are undefined, then the only way to preserve safety
+is to step to $\ottkw{error}$, which is what happens in \rrule{RedAppEvFail}, \rrule{RedProjFail} and \rrule{RedAscrFail}.
+Context frames are defined in \autoref{fig:source-contexts}, and \rrule{RedContext} allows us to step within any context frame.
+Similarly, errors are propagated with \rrule{RedContextFail}. The context rules establish a left-to-right, call-by-value
+evaluation order.
+
+While somewhat complex, basing a gradual language around evidence has several advantages.
+First, the AGT approach allows us to take a pre-existing static language and introduce gradual types. 
+Second, various properties of the language, such as type safety, hold by construction when using the evidence approach.
+
+
+
+\begin{figure}[H] 
+	\nonterms{C}
+	\caption{Source Language: Context Frames}
+	\label{fig:source-contexts}
+\end{figure} 
+
+
+
+\section{The Target Language}
+
+Our target language, given in \autoref{fig:target-syntax}, is essentially an untyped version of the $\lambda^K$
+ calculus presented by \citet{FtoTAL}.
+ We have distinct syntactic classes for \textit{values} (metavariable $\ottnt{u}$),
+ and \textit{terms} (metavariable $\ottnt{t}$). Each syntactic form for terms denotes
+ a single operation on a value, and any nested computations must be explicitly
+ represented with the passing of continuations.
+ We do not provide a semantics for the target, but note that it is straightforward,
+ using $\beta$-reductions, substitution for $\ottkw{let}$, and primitive operations in the usual way.
+ 
+ Notably, our target language is \textit{not} gradual. Because gradual types let us write terms that have no purely static type,
+ we treat our target as untyped typed. 
+
+\begin{figure}[H]
+	\nonterms{u}
+	\nonterms{d}
+	\nonterms{t}
+	\caption{Target Language: Syntax}
+	\label{fig:target-syntax}
+\end{figure}
+
+\section{The Translation} 
+
+With our source and target languages defined, we can specify a translation between the two.
+The key idea is that the evidence information in the source must be explicitly represented
+using nested pairs (effectively untyped trees) and integer tags. While operations on evidence,
+such as meet, were taken as atomic in the source, we provide explicit target implementations for these,
+and to ensure safety, sequence these operations before the operations on values are performed.
+
+\subsection{Translating Evidence}
+
+In \autoref{fig:trans-types}, we translate each evidence object into a pair.
+The first element of the pair is a tag, denoting the root type-constructor for the type.
+We assume we have defined distinct integer constants $ \mathtt{NAT } ,  \mathtt{BOOL } ,  \mathtt{ARROW } , and  \mathtt{PRODUCT } $.
+For the simple types $ \blue{\mathsf{Bool} } $, $ \blue{\mathsf{Nat} } $ and $ \blue{?} $, we simply place a dummy value as the second pair element,
+but for compound function and product types, we insert a pair containing the (recursively computed) representation
+of the sub-components. 
+
+\begin{figure}[H] TODO  
+	\ottdefnEvTransform
+	\caption{Translation: Evidence}
+	\label{fig:trans-types}
+\end{figure}
+
+\subsubsection{Helper Functions}
+
+With our evidence represented as tuples with integer tags, we must represent the partial functions
+on types in our target language.
+The implementation is given in \autoref{fig:meet-impl}.
+Doing this is straightforward: if one argument is $ \blue{?} $,
+then we return the other argument. Otherwise, we check if we have simple or complex types.
+For simple types, either $  \blue{\mathsf{Bool} }   \sqcap   \blue{\mathsf{Bool} }   =   \blue{\mathsf{Bool} }  $, $  \blue{\mathsf{Nat} }   \sqcap   \blue{\mathsf{Nat} }   =   \blue{\mathsf{Nat} }  $.
+For complex types, we check that the tags agree, then recursively compute the meets of the sub-components.
+If neither argument is $ \blue{?} $, and there is a tag mismatch, then we must raise an exception, retuning the $\ottkw{error}$
+continuation.
+
+For the partial functions decomposing types, we first check if the input is $ \blue{?} $,
+in which case we return $ \blue{?} $. Otherwise, we check the tag, and if it is correct, we return
+the relevant sub-component of the type. In all other cases, we throw an error.
+We give an example implementation for $\ottkw{dom}$ in \autoref{fig:dom-impl}: either we are given $ \blue{?} $
+and return $ \blue{?} $, we are given $ \source{T}_{{\mathrm{1}}} \blue{\to} \source{T}_{{\mathrm{2}}} $ and we return $\source{T}_{{\mathrm{1}}}$, or we raise an exception.
+We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are implemented similarly.
+
+\begin{figure}[H]
+	\begin{align*}
+		 &  \mathtt{MEET }  & = & \ottkw{fix} \, \mathtt{ self } \, \lambda  \mathtt{ ty1 } \, \mathtt{ ty2 } \, \mathit{c}  \ldotp  \ottkw{let} \, \mathtt{ tag1 }  \ottsym{:=}  \pi_1  \mathtt{ ty1 } \, \ottkw{in} \, \ottkw{let} \, \mathtt{ sub1 }  \ottsym{:=}  \pi_2  \mathtt{ ty1 } \, \ottkw{in} \, \ottkw{let} \, \mathtt{ isDyn1 }  \ottsym{:=}  \mathtt{ tag1 }  \stackrel{?}{=}   \mathtt{ DYN }  \, \ottkw{in} \,  \\ 
+		 &          &   &  \ottkw{ if }\  \mathtt{ isDyn1 } \ \ottkw{ then }\   \mathit{c} ( \mathtt{ ty2 } )  \ \ottkw{ else }\   \\  
+		 &          &   & \ottkw{let} \, \mathtt{ tag2 }  \ottsym{:=}  \pi_1  \mathtt{ ty2 } \, \ottkw{in} \, \ottkw{let} \, \mathtt{ sub2 }  \ottsym{:=}  \pi_2  \mathtt{ ty2 } \, \ottkw{in} \, \ottkw{let} \, \mathtt{ isDyn2 }  \ottsym{:=}  \mathtt{ tag2 }  \stackrel{?}{=}   \mathtt{ DYN }  \, \ottkw{in} \,  \\ 
+		 &          &   &  \ottkw{ if }\  \mathtt{ isDyn2 } \ \ottkw{ then }\   \mathit{c} ( \mathtt{ ty1 } )  \ \ottkw{ else }\   \\  
+		 &          &   & \ottkw{let} \, \mathtt{ isNat1 }  \ottsym{:=}  \mathtt{ tag1 }  \stackrel{?}{=}   \mathtt{NAT }  \, \ottkw{in} \, \ottkw{let} \, \mathtt{ isNat2 }  \ottsym{:=}  \mathtt{ tag2 }  \stackrel{?}{=}   \mathtt{NAT }  \, \ottkw{in} \,  \\ 
+		 &          &   &  \ottkw{ if }\  \mathtt{ isNat1 } \ \ottkw{ then }\  \ottsym{(}   \ottkw{ if }\  \mathtt{ isNat2 } \ \ottkw{ then }\   \ottnt{k} (  \mathtt{NAT }  )  \ \ottkw{ else }\  \ottkw{error}   \ottsym{)} \ \ottkw{ else }\   \\  
+		 &          &   & \ottkw{let} \, \mathtt{ isBool1 }  \ottsym{:=}  \mathtt{ tag1 }  \stackrel{?}{=}   \mathtt{BOOL }  \, \ottkw{in} \, \ottkw{let} \, \mathtt{ isBool2 }  \ottsym{:=}  \mathtt{ tag2 }  \stackrel{?}{=}   \mathtt{BOOL }  \, \ottkw{in} \,  \\ 
+		 &          &   &  \ottkw{ if }\  \mathtt{ isBool1 } \ \ottkw{ then }\  \ottsym{(}   \ottkw{ if }\  \mathtt{ isBool2 } \ \ottkw{ then }\   \ottnt{k} (  \mathtt{BOOL }  )  \ \ottkw{ else }\  \ottkw{error}   \ottsym{)} \ \ottkw{ else }\   \\  
+		 &          &   & \ottkw{let} \, \mathtt{ isArrow1 }  \ottsym{:=}  \mathtt{ tag1 }  \stackrel{?}{=}   \mathtt{ARROW }  \, \ottkw{in} \, \ottkw{let} \, \mathtt{ isArrow2 }  \ottsym{:=}  \mathtt{ tag2 }  \stackrel{?}{=}   \mathtt{ARROW }  \, \ottkw{in} \,  \\ 
+		 &          &   &  \ottkw{ if }\  \mathtt{ isArrow1 } \ \ottkw{ then }\   \\  \ 
+		 &          &   &  \qquad  \ottkw{let} \, \mathtt{ dom1 }  \ottsym{:=}  \pi_1  \mathtt{ sub1 } \, \ottkw{in} \, \ottkw{let} \, \mathtt{ cod1 }  \ottsym{:=}  \pi_2  \mathtt{ sub1 } \, \ottkw{in} \,  \\  
+		 &          &   &  \qquad   \ottkw{ if }\  \mathtt{ isArrow2 } \ \ottkw{ then }\   \\  \  
+		 &          &   &  \qquad   \qquad  \ottkw{let} \, \mathtt{ dom2 }  \ottsym{:=}  \pi_1  \mathtt{ sub2 } \, \ottkw{in} \, \ottkw{let} \, \mathtt{ cod2 }  \ottsym{:=}  \pi_2  \mathtt{ sub2 } \, \ottkw{in} \,  \\   
+		 &          &   &  \qquad   \qquad   \mathtt{ self } ( \mathtt{ dom1 }  \ottsym{,}  \mathtt{ dom2 }  \ottsym{,}  \ottsym{(}  \lambda  \mathtt{ meet1 }  \ldotp   \mathtt{ self } ( \mathtt{ cod1 }  \ottsym{,}  \mathtt{ cod2 }  \ottsym{,}  \ottsym{(}  \lambda  \mathtt{ meet2 }  \ldotp   \ottnt{k} (  \langle   \mathtt{ARROW }  ,   \langle  \mathtt{ meet1 } ,  \mathtt{ meet2 } \rangle  \rangle  )   \ottsym{)} )   \ottsym{)} )     \\
+		 &          &   &  \qquad   \ottkw{ else }\  \ottkw{error}                                                                                     \\
+		 &          &   & \ottkw{let} \, \mathtt{ isProduct1 }  \ottsym{:=}  \mathtt{ tag1 }  \stackrel{?}{=}   \mathtt{PRODUCT }  \, \ottkw{in} \, \ottkw{let} \, \mathtt{ isProduct2 }  \ottsym{:=}  \mathtt{ tag2 }  \stackrel{?}{=}   \mathtt{PRODUCT }  \, \ottkw{in} \,  \\ 
+		 &          &   &  \ottkw{ if }\  \mathtt{ isProduct1 } \ \ottkw{ then }\   \\  \ 
+		 &          &   &  \qquad  \ottkw{let} \, \mathtt{ lhs1 }  \ottsym{:=}  \pi_1  \mathtt{ sub1 } \, \ottkw{in} \, \ottkw{let} \, \mathtt{ rhs1 }  \ottsym{:=}  \pi_2  \mathtt{ sub1 } \, \ottkw{in} \,  \\  
+		 &          &   &  \qquad   \ottkw{ if }\  \mathtt{ isProduct2 } \ \ottkw{ then }\   \\  \  
+		 &          &   &  \qquad   \qquad  \ottkw{let} \, \mathtt{ lhs2 }  \ottsym{:=}  \pi_1  \mathtt{ sub2 } \, \ottkw{in} \, \ottkw{let} \, \mathtt{ rhs2 }  \ottsym{:=}  \pi_2  \mathtt{ sub2 } \, \ottkw{in} \,  \\   
+		 &          &   &  \qquad   \qquad   \mathtt{ self } ( \mathtt{ lhs1 }  \ottsym{,}  \mathtt{ lhs2 }  \ottsym{,}  \ottsym{(}  \lambda  \mathtt{ meet1 }  \ldotp   \mathtt{ self } ( \mathtt{ rhs1 }  \ottsym{,}  \mathtt{ rhs2 }  \ottsym{,}  \ottsym{(}  \lambda  \mathtt{ meet2 }  \ldotp   \ottnt{k} (  \langle   \mathtt{PRODUCT }  ,   \langle  \mathtt{ meet1 } ,  \mathtt{ meet2 } \rangle  \rangle  )   \ottsym{)} )   \ottsym{)} )    \\
+		 &          &   &  \qquad   \ottkw{ else }\  \ottkw{error}                                                                                     \\
+		 &          &   &  \ottkw{ else }\  \ottkw{error}   
+		%
+	\end{align*}
+	\caption{CPS implementation of meet}
+	\label{fig:meet-impl}
+\end{figure}
+
+\begin{figure}[H]
+	\begin{align*}
+		 &  \mathtt{DOM }  & = & \lambda  \mathtt{ ty } \, \mathit{c}  \ldotp  \ottkw{let} \, \mathtt{ tag }  \ottsym{:=}  \pi_1  \mathtt{ ty1 } \, \ottkw{in} \, \ottkw{let} \, \mathtt{ sub }  \ottsym{:=}  \pi_2  \mathtt{ ty1 } \, \ottkw{in} \, \ottkw{let} \, \mathtt{ isDyn }  \ottsym{:=}  \mathtt{ tag }  \stackrel{?}{=}   \mathtt{ DYN }  \, \ottkw{in} \,  \\ 
+		 &         &   &  \ottkw{ if }\  \mathtt{ isDyn } \ \ottkw{ then }\   \mathit{c} (  \langle   \mathtt{ DYN }  ,  \ottsym{0} \rangle  )  \ \ottkw{ else }\   \\  
+		 &         &   & \ottkw{let} \, \mathtt{ isArrow }  \ottsym{:=}  \mathtt{ tag }  \stackrel{?}{=}   \mathtt{ARROW }  \, \ottkw{in} \,  \\ 
+		 &         &   &  \ottkw{ if }\  \mathtt{ isArrow } \ \ottkw{ then }\  \ottsym{(}  \ottkw{let} \, \mathtt{ ret }  \ottsym{:=}  \pi_1  \mathtt{ sub } \, \ottkw{in} \,  \ottnt{k} ( \mathtt{ ret } )   \ottsym{)} \ \ottkw{ else }\  \ottkw{error} 
+		%
+	\end{align*}
+	\caption{CPS implementation of domain}
+	\label{fig:dom-impl}
+\end{figure}
+
+\subsection{Transforming Terms}
+
+\begin{figure}[H]
+	\ottdefnTransform
+	\caption{Translation: Terms}  
+	\label{fig:trans-terms}
+\end{figure}
+
+
+
+
+
+\section{Whole Program Correctness}
+
+\subsection{Value Transformations}
+
+Since we use small-step semantics, our reduction rules specify how to perform individual operations
+on values, with context rules for performing nested computations. However, our translation does not distinguish
+between, for example, a pair containing values and a pair containing reducible expressions.
+In order to reason about the relationship between our reductions and our translation,
+we define a special translation for values, which will aid in reasoning about how our translation
+behaves when given values as input.
+
+\begin{figure}[H]
+	\ottdefnValTransform
+	\caption{Translation: Values}
+	\label{fig:trans-values}
+\end{figure}
+
+\subsection{Helper Lemmas}
+
+We first show that our translation of evidence preserves the semantics of operations on evidence.
+
+\begin{lemma}[Correctness of Evidence Translation]
+	\label{lem:ev-correct}
+	Consider evidence $\source{ep},\source{ep}'$. Then, for any $\ottnt{k}$:
+	\begin{itemize}
+		\item $  \mathtt{MEET }  (  \mathcal{T}\llbracket  \source{ep}  \rrbracket   \ottsym{,}   \mathcal{T}\llbracket  \source{ep}'  \rrbracket   \ottsym{,}  \ottnt{k} )   {\longrightarrow^{*} }   \ottnt{k} (  \mathcal{T}\llbracket  \source{ep}  \sqcap  \source{ep}'  \rrbracket  ) $ if $\source{ep}  \sqcap  \source{ep}'$ is defined.
+		\item If $\source{ep}  \sqcap  \source{ep}'$ is undefined, then $  \mathtt{MEET }  (  \mathcal{T}\llbracket  \source{ep}  \rrbracket   \ottsym{,}   \mathcal{T}\llbracket  \source{ep}'  \rrbracket  )   {\longrightarrow^{*} }  \ottkw{error}$.
+	\end{itemize}
+	The same property holds for $\ottkw{dom} \, \source{ep}$, $\ottkw{cod} \, \source{ep}$, and $ \ottkw{Proj}_{ i }  \source{ep} $. 
+\end{lemma}
+
+Next, we show that our value translation always produces pairs. This is essential, since our source semantics
+can distinguish between terms with and without evidence. However, since there is no explicit evidence in our target,
+we represent all source values as evidence-value pairs in the target, with unascribed values simply
+having the evidence $ \mathtt{ DYN } $.  
+
+\begin{lemma}[Canonical Forms for Translated Values]
+	\label{lem:canonical-trans}
+	For an irreducible $\source{v}$, $ \mathcal{V}\llbracket  \source{v}  \rrbracket =   \langle   \mathcal{T}\llbracket  \source{ep}  \rrbracket  ,  \ottnt{u} \rangle   $ for some evidence $\source{ep}$ and CPS-value $\ottnt{u}$.
+	Moreover, if $\source{v}$ is a raw irreducible, then $\source{ep}= \{   \blue{?}   \} $.
+\end{lemma}
+\begin{proof}
+	By inversion on the definition of $ \mathcal{V}\llbracket  \source{v}  \rrbracket $.
+\end{proof}
+
+Next, we show that our value translation matches our term translation, after perhaps performing
+some computation. This lemma is crucial for connecting the behaviour of small-step reduction rules,
+which operate primarily on values, to the behaviour of the translations of these values.
+
+
+\begin{lemma}[Value and Expression Translations Match]
+	\label{lem:value-expr-trans}
+	Let $\source{v}$ be an irreducible term. Then, for any $\ottnt{k}$, $\source{v}$, $ \mathcal{E}\llbracket  \source{v}  \rrbracket  \ottnt{k}   {\longrightarrow^{*} }   \ottnt{k} (  \mathcal{V}\llbracket  \source{v}  \rrbracket  ) $.
+\end{lemma}
+\begin{proof}
+	By induction on $\source{v}$. 
+
+	\begin{itemize}
+		\item Case $\source{v} = b$, $\source{v} = \ottnt{n}$, or $\source{v} =  \blue{\lambda  \mathit{x} }  \ldotp  \source{e} $: trivial.
+		\item Case $\source{v} =  \blue{\langle}  \source{v}_{{\mathrm{1}}}  \blue{,}  \source{v}_{{\mathrm{2}}}  \blue{\rangle} $.
+		      % By our hypothesis, for any $\ottnt{k_{{\mathrm{0}}}}$, $ \mathcal{E}\llbracket  \source{v}_{{\mathrm{1}}}  \rrbracket  \ottnt{k_{{\mathrm{0}}}}   {\longrightarrow^{*} }   \ottnt{k_{{\mathrm{0}}}} (  \mathcal{V}\llbracket  \source{v}_{{\mathrm{1}}}  \rrbracket  ) $ and $ \mathcal{E}\llbracket  \source{v}_{{\mathrm{2}}}  \rrbracket  \ottnt{k_{{\mathrm{0}}}}   {\longrightarrow^{*} }   \ottnt{k_{{\mathrm{0}}}} (  \mathcal{V}\llbracket  \source{v}_{{\mathrm{2}}}  \rrbracket  ) $.
+		      So $ \mathcal{E}\llbracket   \blue{\langle}  \source{v}_{{\mathrm{1}}}  \blue{,}  \source{v}_{{\mathrm{2}}}  \blue{\rangle}   \rrbracket  \ottnt{k}  =   \mathcal{E}\llbracket  \source{v}_{{\mathrm{1}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}}  \ldotp   \mathcal{E}\llbracket  \source{v}_{{\mathrm{2}}}  \rrbracket  \ottsym{(}  \lambda  \mathit{x_{{\mathrm{2}}}}  \ldotp   \ottnt{k} (  \langle   \mathtt{ DYN }  ,   \langle  \mathit{x_{{\mathrm{1}}}} ,  \mathit{x_{{\mathrm{2}}}} \rangle  \rangle  )   \ottsym{)}   \ottsym{)}  $,
+		      which, by our hypothesis, reduces to  $\ottnt{t_{{\mathrm{1}}}}  {\longrightarrow^{*} }   \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}}  \ldotp   \ottsym{(}  \lambda  \mathit{x_{{\mathrm{2}}}}  \ldotp   \ottnt{k} (  \langle   \mathtt{ DYN }  ,   \langle  \mathit{x_{{\mathrm{1}}}} ,  \mathit{x_{{\mathrm{2}}}} \rangle  \rangle  )   \ottsym{)} (  \mathcal{V}\llbracket  \source{v}_{{\mathrm{2}}}  \rrbracket  )   \ottsym{)} (  \mathcal{V}\llbracket  \source{v}_{{\mathrm{1}}}  \rrbracket  ) $,
+		      which we can then reduce to $ \ottnt{k} (  \langle   \mathtt{ DYN }  ,   \langle   \mathcal{V}\llbracket  \source{v}_{{\mathrm{1}}}  \rrbracket  ,   \mathcal{V}\llbracket  \source{v}_{{\mathrm{2}}}  \rrbracket  \rangle  \rangle  ) $.
+		\item Case $\source{v} = \source{ep} \, \source{r}$. Since all raw values are themselves irreducible,
+		      our inductive hypothesis gives that
+		      $ \mathcal{E}\llbracket  \source{r}  \rrbracket  \ottsym{(}  \lambda  \mathit{x}  \ldotp  \ottkw{let} \, \mathit{x_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x} \, \ottkw{in} \, \ottkw{let} \, \mathit{x_{{\mathrm{2}}}}  \ottsym{:=}  \pi_2  \mathit{x} \, \ottkw{in} \,   \mathtt{MEET }  (  \mathcal{T}\llbracket  \source{ep}  \rrbracket   \ottsym{,}  \mathit{x_{{\mathrm{1}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{y}  \ldotp   \ottnt{k} (  \langle  \mathit{y} ,  \mathit{x_{{\mathrm{2}}}} \rangle  )   \ottsym{)} )   \ottsym{)} $
+		      steps to $ \ottsym{(}  \lambda  \mathit{x}  \ldotp  \ottkw{let} \, \mathit{x_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x} \, \ottkw{in} \, \ottkw{let} \, \mathit{x_{{\mathrm{2}}}}  \ottsym{:=}  \pi_2  \mathit{x} \, \ottkw{in} \,   \mathtt{MEET }  (  \mathcal{T}\llbracket  \source{ep}  \rrbracket   \ottsym{,}  \mathit{x_{{\mathrm{1}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{y}  \ldotp   \ottnt{k} (  \langle  \mathit{y} ,  \mathit{x_{{\mathrm{2}}}} \rangle  )   \ottsym{)} )   \ottsym{)} (  \mathcal{V}\llbracket  \source{r}  \rrbracket  ) $.
+		      By \autoref{lem:canonical-trans}, $ \mathcal{V}\llbracket  \source{r}  \rrbracket $ is of the form
+		      $ \langle   \mathtt{ DYN }  ,  \ottnt{u} \rangle $ for some $\ottnt{u}$.
+		      So we can then $\beta$-reduce and apply the let-substitutions to reach $  \mathtt{MEET }  (  \mathcal{T}\llbracket  \source{ep}  \rrbracket   \ottsym{,}   \mathtt{ DYN }   \ottsym{,}  \ottnt{u} ) $.
+		      By \autoref{lem:ev-correct}, this steps to $ \langle   \mathcal{T}\llbracket  \source{ep}  \rrbracket  ,  \ottnt{u} \rangle $.
+		      By the rule \rrule{TransformEv}, this means that $ \mathcal{V}\llbracket  \source{ep} \, \source{r}  \rrbracket $ also steps to this value.
+ 
+
+	\end{itemize}
+\end{proof}
+
+Finally, we show that our translation preserves substitution, which is needed to show the correctness
+of our translation of functions.
+
+\begin{lemma}[Translation Commutes With Substitution]
+	\label{lem:subst-commut}
+	$ \mathcal{E}\llbracket   \black{[}  \source{v}  \black{/}  \mathit{x}  \black{]}  \source{e}   \rrbracket  \ottsym{(}   [   \mathcal{V}\llbracket  \source{v}  \rrbracket   /  \mathit{x}  ]  \ottnt{k}   \ottsym{)}   {\longrightarrow^{*} }   [   \mathcal{V}\llbracket  \source{v}  \rrbracket   /  \mathit{x}  ]   \mathcal{E}\llbracket  \source{e}  \rrbracket  \ottnt{k}  $.   
+\end{lemma} 
+\begin{proof}
+	Follows from straightforward induction on $\source{e}$, combined with \autoref{lem:value-expr-trans}
+	for the case where $\source{e}=\mathit{x}$.
+\end{proof}
+
+\subsection{Main Result}
+
+These lemmas give us the tools we need to prove our main result.
+We show that the translation takes a source term to a target term
+that is \textit{equivalent} to the result of reduction 
+Essentially, we are saying that if $\source{e}_{{\mathrm{1}}}  \longrightarrow  \source{e}_{{\mathrm{2}}}$, then $\source{e}_{{\mathrm{1}}}$ and $\source{e}_{{\mathrm{2}}}$
+translate to target terms that will eventually step to some common term.
+
+\begin{theorem}[Weak Simulation]
+
+	If $\source{e}_{{\mathrm{1}}}  \longrightarrow  \source{e}_{{\mathrm{2}}}$, then for all $\ottnt{k}$, $ \mathcal{E}\llbracket  \source{e}_{{\mathrm{1}}}  \rrbracket  \ottnt{k}  \equiv   \mathcal{E}\llbracket  \source{e}_{{\mathrm{2}}}  \rrbracket  \ottnt{k} $.
+
+\end{theorem}
+\begin{proof}
+	We perform induction on the derivation tree of $\source{e}_{{\mathrm{1}}}  \longrightarrow  \source{e}_{{\mathrm{2}}}$.
+
+	\begin{itemize}
+		\item
+		      \rrule{RedIfTrue}: then $\source{e}_{{\mathrm{1}}}= \blue{\ottkw{if} }\   \blue{ \ottkw{true} }  \ \blue{\ottkw{then} }\  \source{e}_{{\mathrm{2}}} \ \blue{\ottkw{else} }\  \source{e}_{{\mathrm{3}}} $.
+		      The translation $ \mathcal{E}\llbracket   \blue{ \ottkw{true} }   \rrbracket  \ottnt{k'}  =   \ottnt{k'} (  \langle   \mathtt{ DYN }  ,  \ottkw{true} \rangle  )  $ for any $\ottnt{k'}$,
+		      so $ \mathcal{E}\llbracket   \blue{\ottkw{if} }\   \blue{ \ottkw{true} }  \ \blue{\ottkw{then} }\  \source{e}_{{\mathrm{2}}} \ \blue{\ottkw{else} }\  \source{e}_{{\mathrm{3}}}   \rrbracket  \ottnt{k} $ is \\
+		      ${ \ottsym{(}  \lambda  \mathit{x_{{\mathrm{0}}}}  \ldotp  \ottkw{let} \, \mathit{x}  \ottsym{:=}  \pi_2  \mathit{x_{{\mathrm{0}}}} \, \ottkw{in} \,  \ottkw{ if }\  \mathit{x} \ \ottkw{ then }\  \ottsym{(}   \mathcal{E}\llbracket  \source{e}_{{\mathrm{2}}}  \rrbracket  \ottnt{k}   \ottsym{)} \ \ottkw{ else }\  \ottsym{(}   \mathcal{E}\llbracket  \source{e}_{{\mathrm{3}}}  \rrbracket  \ottnt{k}   \ottsym{)}   \ottsym{)} (  \langle   \mathtt{ DYN }  ,  \ottkw{true} \rangle  ) }$.
+		      We can $\beta$-reduce to get $\ottkw{let} \, \mathit{x}  \ottsym{:=}  \pi_2   \langle   \mathtt{ DYN }  ,  \ottkw{true} \rangle  \, \ottkw{in} \,  \ottkw{ if }\  \mathit{x} \ \ottkw{ then }\   \mathcal{E}\llbracket  \source{e}_{{\mathrm{2}}}  \rrbracket  \ottnt{k}  \ \ottkw{ else }\   \mathcal{E}\llbracket  \source{e}_{{\mathrm{3}}}  \rrbracket  \ottnt{k}  $,
+		      and we can substitute $\ottkw{true}$ for $\mathit{x}$ and reduce the $\ottkw{if}$ to get $ \mathcal{E}\llbracket  \source{e}_{{\mathrm{2}}}  \rrbracket  \ottnt{k} $.
+
+		\item \rrule{RedIfFalse}: symmetric to RedIfTrue
+
+		\item \rrule{RedIfEv}: $\source{e}_{{\mathrm{1}}}= \blue{\ottkw{if} }\  \source{ep} \,  \blue{ b }  \ \blue{\ottkw{then} }\  \source{e}'_{{\mathrm{2}}} \ \blue{\ottkw{else} }\  \source{e}'_{{\mathrm{3}}} $. 
+		      We know that $ \mathcal{E}\llbracket   \blue{ b }   \rrbracket  \ottnt{k'}  =   \ottnt{k'} (  \langle   \mathtt{ DYN }  ,  b \rangle  )  $,
+		      so $ \mathcal{E}\llbracket  \source{ep} \,  \blue{ b }   \rrbracket  \ottnt{k''}  =   \ottsym{(}  \lambda  \mathit{x}  \ldotp  \ottkw{let} \, \mathit{x_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x} \, \ottkw{in} \, \ottkw{let} \, \mathit{x_{{\mathrm{2}}}}  \ottsym{:=}  \pi_2  \mathit{x} \, \ottkw{in} \,   \mathtt{MEET }  (  \mathcal{T}\llbracket  \source{ep}  \rrbracket   \ottsym{,}  \mathit{x_{{\mathrm{1}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{y}  \ldotp   \ottnt{k''} (  \langle  \mathit{y} ,  \mathit{x_{{\mathrm{2}}}} \rangle  )   \ottsym{)} )   \ottsym{)} (  \langle   \mathtt{ DYN }  ,  b \rangle  )  $.
+		      We can $\beta$-reduce, and substitute with the let-expressions, to get
+		      $\ottsym{(}  \lambda  \mathit{x}  \ldotp    \mathtt{MEET }  (  \mathcal{T}\llbracket  \source{ep}  \rrbracket   \ottsym{,}   \mathtt{ DYN }   \ottsym{,}  \ottsym{(}  \lambda  \mathit{y}  \ldotp   \ottnt{k''} (  \langle  \mathit{y} ,  b \rangle  )   \ottsym{)} )   \ottsym{)}$.
+		      However, $\source{ep}  \sqcap   \{   \blue{?}   \}  =  \{   \blue{?}   \} $, so by \autoref{lem:ev-correct} this steps to $ \ottnt{k''} (  \langle   \mathcal{T}\llbracket  \source{ep}  \rrbracket  ,  b \rangle  ) $.
+		      Since the translation of $\ottkw{if}$ ignores any evidence in the condition,
+		      we can use the same reasoning from RedIfTrue to show that it steps to $\source{e}_{{\mathrm{2}}}$ if $b$ is true, and $\source{e}_{{\mathrm{3}}}$ if $b$ is false.
+ 
+		\item \rrule{RedApp}: then $\source{e}_{{\mathrm{1}}} =  \blue{(}   \blue{\lambda  \mathit{x} }  \ldotp  \source{e}'   \blue{)}  \, \source{v}$ and $\source{e}_{{\mathrm{2}}}= \black{[}  \source{v}  \black{/}  \mathit{x}  \black{]}  \source{e}' $.
+		We assume our terms follow variable convention so that $\mathit{x}$ is not free in $\ottnt{k}$.
+
+		Let $ \langle   \mathcal{T}\llbracket  \source{ep}  \rrbracket  ,  \ottnt{u} \rangle  =  \mathcal{V}\llbracket  \source{v}  \rrbracket $ (by \autoref{lem:canonical-trans}).
+        If we apply \autoref{lem:value-expr-trans}, we can see that $ \mathcal{E}\llbracket   \blue{(}   \blue{\lambda  \mathit{x} }  \ldotp  \source{e}'   \blue{)}  \, \source{v}  \rrbracket  \ottnt{k} $
+        steps to \\$ \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}} \, \mathit{x_{{\mathrm{2}}}}  \ldotp  \ottkw{let} \, \mathit{y_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x_{{\mathrm{1}}}} \, \ottkw{in} \,  \ldots   \ottsym{)} (  \langle   \mathtt{ DYN }  ,  \ottsym{(}  \lambda  \mathit{x} \, \mathit{c}  \ldotp   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \mathit{c}   \ottsym{)} \rangle   \ottsym{,}   \langle   \mathcal{T}\llbracket  \source{ep}  \rrbracket  ,  \ottnt{u} \rangle  ) $.
+        We can $\beta$-reduce and apply the let-substitutions to then step to
+        \\$  \mathtt{DOM }  (  \mathtt{ DYN }   \ottsym{,}  \lambda  \mathit{y'_{{\mathrm{1}}}}  \ldotp    \mathtt{COD }  (  \mathtt{ DYN }   \ottsym{,}  \lambda  \mathit{y''_{{\mathrm{1}}}}  \ldotp    \mathtt{MEET }  ( \mathit{y'_{{\mathrm{1}}}}  \ottsym{,}   \mathcal{T}\llbracket  \source{ep}  \rrbracket   \ottsym{,}  \ottsym{(}  \lambda  \mathit{y_{{\mathrm{3}}}}  \ldotp   \ottsym{(}  \lambda  \mathit{x} \, \mathit{c}  \ldotp   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \mathit{c}   \ottsym{)} (  \langle  \mathit{y_{{\mathrm{3}}}} ,  \ottnt{u} \rangle   \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{3}}}}  \ldotp  \ottkw{let} \, \mathit{z'_{{\mathrm{3}}}}  \ottsym{:=}  \pi_1  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z''_{{\mathrm{3}}}}  \ottsym{:=}  \pi_2  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \,   \mathtt{MEET }  ( \mathit{y''_{{\mathrm{1}}}}  \ottsym{,}  \mathit{z'_{{\mathrm{3}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{4}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z_{{\mathrm{4}}}} ,  \mathit{z''_{{\mathrm{3}}}} \rangle  )   \ottsym{)} )   \ottsym{)} )   \ottsym{)} )  )  ) $.
+        By applying \autoref{lem:ev-correct} for $ \mathtt{DOM } ,  \mathtt{COD } $ and $ \mathtt{MEET } $ of $ \blue{?} $ respectively,
+        we can step to  
+        \\$ \ottsym{(}  \lambda  \mathit{x} \, \mathit{c}  \ldotp   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \mathit{c}   \ottsym{)} (  \langle   \mathcal{T}\llbracket  \source{ep}  \rrbracket  ,  \ottnt{u} \rangle   \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{3}}}}  \ldotp  \ottkw{let} \, \mathit{z'_{{\mathrm{3}}}}  \ottsym{:=}  \pi_1  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z''_{{\mathrm{3}}}}  \ottsym{:=}  \pi_2  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \,   \mathtt{MEET }  (  \mathtt{ DYN }   \ottsym{,}  \mathit{z'_{{\mathrm{3}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{4}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z_{{\mathrm{4}}}} ,  \mathit{z''_{{\mathrm{3}}}} \rangle  )   \ottsym{)} )   \ottsym{)} ) $.
+		This then $\beta$-reduces to 
+		\\$ [   \langle   \mathcal{T}\llbracket  \source{ep}  \rrbracket  ,  \ottnt{u} \rangle   /  \mathit{x}  ]   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{3}}}}  \ldotp  \ottkw{let} \, \mathit{z'_{{\mathrm{3}}}}  \ottsym{:=}  \pi_1  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z''_{{\mathrm{3}}}}  \ottsym{:=}  \pi_2  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \,   \mathtt{MEET }  (  \mathtt{ DYN }   \ottsym{,}  \mathit{z'_{{\mathrm{3}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{4}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z_{{\mathrm{4}}}} ,  \mathit{z''_{{\mathrm{3}}}} \rangle  )   \ottsym{)} )   \ottsym{)}  $.
+		But, then, by \autoref{lem:ev-correct} and $\eta$-equivalence, this is equivalent to
+		$ [   \langle   \mathcal{T}\llbracket  \source{ep}  \rrbracket  ,  \ottnt{u} \rangle   /  \mathit{x}  ]   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \ottnt{k}  $.
+		But we know that this is $ [   \mathcal{V}\llbracket  \source{v}  \rrbracket   /  \mathit{x}  ]   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \ottnt{k}  $ 
+		Finally, our variable convention and \autoref{lem:subst-commut} give us that 
+		this is equivalent to $ \mathcal{E}\llbracket   \black{[}  \source{v}  \black{/}  \mathit{x}  \black{]}  \source{e}'   \rrbracket  \ottnt{k} $.
+
+		\item \rrule{RedAppEv}: then $\source{e}_{{\mathrm{1}}} = \source{ep}_{{\mathrm{1}}} \,  \blue{(}   \blue{\lambda  \mathit{x} }  \ldotp  \source{e}'   \blue{)}  \, \source{ep}_{{\mathrm{2}}} \, \source{v}$ and \\$\source{e}_{{\mathrm{2}}}=\ottkw{cod} \, \source{ep}_{{\mathrm{1}}} \,  \blue{(}   \black{[}  \ottsym{(}  \ottkw{dom} \, \source{ep}_{{\mathrm{1}}}  \sqcap  \source{ep}_{{\mathrm{2}}}  \ottsym{)} \, \source{v}  \black{/}  \mathit{x}  \black{]}  \source{e}'   \blue{)} $. 
+		Let $ \langle   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{2}}}  \rrbracket  ,  \ottnt{u} \rangle  =  \mathcal{V}\llbracket  \source{v}  \rrbracket $ (by \autoref{lem:canonical-trans}).
+        If we apply \autoref{lem:value-expr-trans}, we can see that $ \mathcal{E}\llbracket  \source{ep}_{{\mathrm{1}}} \,  \blue{(}   \blue{\lambda  \mathit{x} }  \ldotp  \source{e}'   \blue{)}  \, \source{ep}_{{\mathrm{2}}} \, \source{v}  \rrbracket  \ottnt{k} $
+        steps to \\$ \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}} \, \mathit{x_{{\mathrm{2}}}}  \ldotp  \ottkw{let} \, \mathit{y_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x_{{\mathrm{1}}}} \, \ottkw{in} \,  \ldots   \ottsym{)} (  \langle   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{1}}}  \rrbracket  ,  \ottsym{(}  \lambda  \mathit{x} \, \mathit{c}  \ldotp   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \mathit{c}   \ottsym{)} \rangle   \ottsym{,}   \langle   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{2}}}  \rrbracket  ,  \ottnt{u} \rangle  ) $.
+        We can $\beta$-reduce and apply the let-substitutions to then step to
+        \\$  \mathtt{DOM }  (  \mathcal{T}\llbracket  \source{ep}_{{\mathrm{1}}}  \rrbracket   \ottsym{,}  \lambda  \mathit{y'_{{\mathrm{1}}}}  \ldotp    \mathtt{COD }  (  \mathcal{T}\llbracket  \source{ep}_{{\mathrm{1}}}  \rrbracket   \ottsym{,}  \lambda  \mathit{y''_{{\mathrm{1}}}}  \ldotp    \mathtt{MEET }  ( \mathit{y'_{{\mathrm{1}}}}  \ottsym{,}   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{2}}}  \rrbracket   \ottsym{,}  \ottsym{(}  \lambda  \mathit{y_{{\mathrm{3}}}}  \ldotp   \ottsym{(}  \lambda  \mathit{x} \, \mathit{c}  \ldotp   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \mathit{c}   \ottsym{)} (  \langle  \mathit{y_{{\mathrm{3}}}} ,  \ottnt{u} \rangle   \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{3}}}}  \ldotp  \ottkw{let} \, \mathit{z'_{{\mathrm{3}}}}  \ottsym{:=}  \pi_1  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z''_{{\mathrm{3}}}}  \ottsym{:=}  \pi_2  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \,   \mathtt{MEET }  ( \mathit{y''_{{\mathrm{1}}}}  \ottsym{,}  \mathit{z'_{{\mathrm{3}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{4}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z_{{\mathrm{4}}}} ,  \mathit{z''_{{\mathrm{3}}}} \rangle  )   \ottsym{)} )   \ottsym{)} )   \ottsym{)} )  )  ) $.
+        By applying \autoref{lem:ev-correct} for $ \mathtt{DOM } ,  \mathtt{COD } $ and $ \mathtt{MEET } $ of $ \blue{?} $ respectively,
+        we can step to  
+        \\$ \ottsym{(}  \lambda  \mathit{x} \, \mathit{c}  \ldotp   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \mathit{c}   \ottsym{)} (  \langle   \mathcal{T}\llbracket  \ottkw{dom} \, \source{ep}_{{\mathrm{1}}}  \sqcap  \source{ep}_{{\mathrm{2}}}  \rrbracket  ,  \ottnt{u} \rangle   \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{3}}}}  \ldotp  \ottkw{let} \, \mathit{z'_{{\mathrm{3}}}}  \ottsym{:=}  \pi_1  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z''_{{\mathrm{3}}}}  \ottsym{:=}  \pi_2  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \,  \\   \qquad    \mathtt{MEET }  (  \mathcal{T}\llbracket  \ottkw{cod} \, \source{ep}_{{\mathrm{1}}}  \rrbracket   \ottsym{,}  \mathit{z'_{{\mathrm{3}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{4}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z_{{\mathrm{4}}}} ,  \mathit{z''_{{\mathrm{3}}}} \rangle  )   \ottsym{)} )     \ottsym{)} ) $.
+		\\This then $\beta$-reduces to 
+		\\$ [   \langle   \mathcal{T}\llbracket  \ottkw{dom} \, \source{ep}_{{\mathrm{1}}}  \sqcap  \source{ep}_{{\mathrm{2}}}  \rrbracket  ,  \ottnt{u} \rangle   /  \mathit{x}  ]   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{3}}}}  \ldotp  \ottkw{let} \, \mathit{z'_{{\mathrm{3}}}}  \ottsym{:=}  \pi_1  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z''_{{\mathrm{3}}}}  \ottsym{:=}  \pi_2  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \,  \\    \mathtt{MEET }  (  \mathcal{T}\llbracket  \ottkw{cod} \, \source{ep}_{{\mathrm{1}}}  \rrbracket   \ottsym{,}  \mathit{z'_{{\mathrm{3}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{4}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z_{{\mathrm{4}}}} ,  \mathit{z''_{{\mathrm{3}}}} \rangle  )   \ottsym{)} )    \ottsym{)}  $.
+		% But, then, by \autoref{lem:ev-correct} and $\eta$-equivalence, this is equivalent to
+		% $ [   \langle   \mathcal{T}\llbracket  \ottkw{dom} \, \source{ep}_{{\mathrm{1}}}  \sqcap  \source{ep}_{{\mathrm{2}}}  \rrbracket  ,  \ottnt{u} \rangle   /  \mathit{x}  ]   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \ottnt{k}  $.
+		\\But, by the rule \rrule{TransformEv}, this is $\alpha$-equivalent to  $ \mathcal{E}\llbracket  \ottkw{cod} \, \source{ep}_{{\mathrm{1}}} \,  \blue{(}   \black{[}  \ottsym{(}  \ottkw{dom} \, \source{ep}_{{\mathrm{1}}}  \sqcap  \source{ep}_{{\mathrm{2}}}  \ottsym{)} \, \source{v}  \black{/}  \mathit{x}  \black{]}  \source{e}'   \blue{)}   \rrbracket  \ottnt{k} $,
+		giving us our result.
+
+		\item \rrule{RedAppEvFail}: then $\source{e}_{{\mathrm{1}}} = \source{ep}_{{\mathrm{1}}} \,  \blue{(}   \blue{\lambda  \mathit{x} }  \ldotp  \source{e}'   \blue{)}  \, \source{ep}_{{\mathrm{2}}} \, \source{v}$ and $\source{e}_{{\mathrm{2}}}=\ottkw{error}$.
+		Let $ \langle   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{2}}}  \rrbracket  ,  \ottnt{u} \rangle  =  \mathcal{V}\llbracket  \source{v}  \rrbracket $ (by \autoref{lem:canonical-trans}).
+        If we apply \autoref{lem:value-expr-trans}, we can see that $ \mathcal{E}\llbracket  \source{ep}_{{\mathrm{1}}} \,  \blue{(}   \blue{\lambda  \mathit{x} }  \ldotp  \source{e}'   \blue{)}  \, \source{ep}_{{\mathrm{2}}} \, \source{v}  \rrbracket  \ottnt{k} $
+        steps to \\$ \ottsym{(}  \lambda  \mathit{x_{{\mathrm{1}}}} \, \mathit{x_{{\mathrm{2}}}}  \ldotp  \ottkw{let} \, \mathit{y_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x_{{\mathrm{1}}}} \, \ottkw{in} \,  \ldots   \ottsym{)} (  \langle   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{1}}}  \rrbracket  ,  \ottsym{(}  \lambda  \mathit{x} \, \mathit{c}  \ldotp   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \mathit{c}   \ottsym{)} \rangle   \ottsym{,}   \langle   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{2}}}  \rrbracket  ,  \ottnt{u} \rangle  ) $.
+        We can $\beta$-reduce and apply the let-substitutions to then step to
+        \\$  \mathtt{DOM }  (  \mathcal{T}\llbracket  \source{ep}_{{\mathrm{1}}}  \rrbracket   \ottsym{,}  \lambda  \mathit{y'_{{\mathrm{1}}}}  \ldotp    \mathtt{COD }  (  \mathcal{T}\llbracket  \source{ep}_{{\mathrm{1}}}  \rrbracket   \ottsym{,}  \lambda  \mathit{y''_{{\mathrm{1}}}}  \ldotp    \mathtt{MEET }  ( \mathit{y'_{{\mathrm{1}}}}  \ottsym{,}   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{2}}}  \rrbracket   \ottsym{,}  \ottsym{(}  \lambda  \mathit{y_{{\mathrm{3}}}}  \ldotp   \ottsym{(}  \lambda  \mathit{x} \, \mathit{c}  \ldotp   \mathcal{E}\llbracket  \source{e}'  \rrbracket  \mathit{c}   \ottsym{)} (  \langle  \mathit{y_{{\mathrm{3}}}} ,  \ottnt{u} \rangle   \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{3}}}}  \ldotp  \ottkw{let} \, \mathit{z'_{{\mathrm{3}}}}  \ottsym{:=}  \pi_1  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \, \ottkw{let} \, \mathit{z''_{{\mathrm{3}}}}  \ottsym{:=}  \pi_2  \mathit{z_{{\mathrm{3}}}} \, \ottkw{in} \,   \mathtt{MEET }  ( \mathit{y''_{{\mathrm{1}}}}  \ottsym{,}  \mathit{z'_{{\mathrm{3}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{4}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z_{{\mathrm{4}}}} ,  \mathit{z''_{{\mathrm{3}}}} \rangle  )   \ottsym{)} )   \ottsym{)} )   \ottsym{)} )  )  ) $.
+        By applying \autoref{lem:ev-correct} for $ \mathtt{MEET } $ with our premise that $\ottkw{dom} \, \source{ep}_{{\mathrm{1}}}  \sqcap  \source{ep}_{{\mathrm{2}}} \, \ottkw{undefined}$
+		we can step to  $\ottkw{error}$.
+		
+		\item \rrule{RedAppEvPartial}: the same reasoning as \rrule{RedAppEv}, except that by \autoref{lem:value-expr-trans},
+		we know that the argument's translation is annotated with $ \blue{?} $.
+
+		\item \rrule{RedAppEvFailPartial}: the same reasoning as \rrule{RedfAppEvFail}, except for $ \mathtt{DOM } $ instead of $ \mathtt{MEET } $.
+		\item \rrule{RedPlus}, \rrule{RedEqT}, \rrule{RedEqF}, \rrule{RedProj}: trivial.
+		\item \rrule{RedPlusEvL}, \rrule{RedPlusEvR}, \rrule{RedEqEvL}, \rrule{RedEqEvR}: follows from our induction hypothesis, combined with the fact that the \rrule{TransformPlus} and \rrule{TransformEq} both ignore evidence.
+		
+		\item \rrule{RedProj} Then $\source{e}_{{\mathrm{1}}}= \blue{ \pi_{ i } }   \blue{\langle}  \source{v}_{{\mathrm{1}}}  \blue{,}  \source{v}_{{\mathrm{2}}}  \blue{\rangle}  $ and $\source{e}_{{\mathrm{2}}} = \source{v}_{\ottmv{i}}$. 
+		Then combining \rrule{TransformProj} with \autoref{lem:canonical-trans} and \autoref{lem:value-expr-trans},
+		we have $ \mathcal{E}\llbracket   \blue{ \pi_{ i } }   \blue{\langle}  \source{v}_{{\mathrm{1}}}  \blue{,}  \source{v}_{{\mathrm{2}}}  \blue{\rangle}    \rrbracket  \ottnt{k} $ steps to $ \ottsym{(}  \lambda  \mathit{x}  \ldotp  \ottkw{let} \, \mathit{y_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x} \, \ottkw{in} \,  \ldots   \ottsym{)} (  \langle   \mathtt{ DYN }  ,   \langle   \mathcal{V}\llbracket  \source{v}_{{\mathrm{1}}}  \rrbracket  ,   \mathcal{V}\llbracket  \source{v}_{{\mathrm{2}}}  \rrbracket  \rangle  \rangle  ) $.
+		If we $\beta$-reduce and substitute for the let-expressions, we get $  \mathtt{PROD}_{ i }  (  \mathtt{ DYN }   \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{1}}}}  \ldotp   \ldots   \ottsym{)} ) $.
+		We apply \autoref{lem:ev-correct} and let-substitution to step to $  \mathtt{MEET }  (  \mathtt{ DYN }   \ottsym{,}  \ottnt{u_{{\mathrm{1}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z'_{{\mathrm{1}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z'_{{\mathrm{1}}}} ,  \ottnt{u_{{\mathrm{2}}}} \rangle  )   \ottsym{)} ) $,
+		where $ \mathcal{V}\llbracket  \source{v}_{\ottmv{i}}  \rrbracket  =  \langle  \ottnt{u_{{\mathrm{1}}}} ,  \ottnt{u_{{\mathrm{2}}}} \rangle $ by \autoref{lem:canonical-trans}.
+		By \autoref{lem:ev-correct} this steps to $ \ottnt{k} (  \langle  \ottnt{u_{{\mathrm{1}}}} ,  \ottnt{u_{{\mathrm{2}}}} \rangle  ) $
+		 which we can also step to
+		from $ \mathcal{E}\llbracket  \source{v}_{\ottmv{i}}  \rrbracket  \ottnt{k} $ by \autoref{lem:value-expr-trans}.
+
+		\item \rrule{RedProjEv} Then $\source{e}_{{\mathrm{1}}}= \blue{ \pi_{ i } }   \blue{(}  \source{ep} \,  \blue{\langle}  \source{v}_{{\mathrm{1}}}  \blue{,}  \source{v}_{{\mathrm{2}}}  \blue{\rangle}   \blue{)}  $ and $\source{e}_{{\mathrm{2}}} = \ottsym{(}   \ottkw{Proj}_{ i }  \source{ep}   \ottsym{)} \, \source{v}_{\ottmv{i}}$. 
+		Then combining \rrule{TransformProj} with \autoref{lem:canonical-trans} and \autoref{lem:value-expr-trans},
+		we have $ \mathcal{E}\llbracket   \blue{ \pi_{ i } }   \blue{\langle}  \source{v}_{{\mathrm{1}}}  \blue{,}  \source{v}_{{\mathrm{2}}}  \blue{\rangle}    \rrbracket  \ottnt{k} $ steps to \\$ \ottsym{(}  \lambda  \mathit{x}  \ldotp  \ottkw{let} \, \mathit{y_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x} \, \ottkw{in} \,  \ldots   \ottsym{)} (  \langle   \mathcal{T}\llbracket  \source{ep}  \rrbracket  ,   \langle   \mathcal{V}\llbracket  \source{v}_{{\mathrm{1}}}  \rrbracket  ,   \mathcal{V}\llbracket  \source{v}_{{\mathrm{2}}}  \rrbracket  \rangle  \rangle  ) $.
+		If we $\beta$-reduce, and substitute for the let-expressions, we get $  \mathtt{PROD}_{ i }  (  \mathcal{T}\llbracket  \source{ep}  \rrbracket   \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{1}}}}  \ldotp   \ldots   \ottsym{)} ) $.
+		We apply \autoref{lem:ev-correct} and let-substitution to step to $  \mathtt{MEET }  (  \mathcal{T}\llbracket   \ottkw{Proj}_{ i }  \source{ep}   \rrbracket   \ottsym{,}  \ottnt{u_{{\mathrm{1}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z'_{{\mathrm{1}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z'_{{\mathrm{1}}}} ,  \ottnt{u_{{\mathrm{2}}}} \rangle  )   \ottsym{)} ) $,
+		where $ \mathcal{V}\llbracket  \source{v}_{\ottmv{i}}  \rrbracket  =  \langle  \ottnt{u_{{\mathrm{1}}}} ,  \ottnt{u_{{\mathrm{2}}}} \rangle $ by \autoref{lem:canonical-trans}.
+
+		Looking now at $\source{e}_{{\mathrm{2}}}$, we can apply \rrule{TransformEv} and \autoref{lem:canonical-trans}, then $\beta$-reduce
+		and substitute
+		to see that $ \mathcal{E}\llbracket  \ottsym{(}   \ottkw{Proj}_{ i }  \source{ep}   \ottsym{)} \, \source{v}_{\ottmv{i}}  \rrbracket  \ottnt{k} $ also steps to $  \mathtt{MEET }  (  \mathcal{T}\llbracket   \ottkw{Proj}_{ i }  \source{ep}   \rrbracket   \ottsym{,}  \ottnt{u_{{\mathrm{1}}}}  \ottsym{,}  \ottsym{(}  \lambda  \mathit{z'_{{\mathrm{1}}}}  \ldotp   \ottnt{k} (  \langle  \mathit{z'_{{\mathrm{1}}}} ,  \ottnt{u_{{\mathrm{2}}}} \rangle  )   \ottsym{)} ) $.   
+		
+		\item \rrule{RedProjFail}
+		Then $\source{e}_{{\mathrm{1}}}= \blue{ \pi_{ i } }   \blue{(}  \source{ep} \,  \blue{\langle}  \source{v}_{{\mathrm{1}}}  \blue{,}  \source{v}_{{\mathrm{2}}}  \blue{\rangle}   \blue{)}  $ and $\source{e}_{{\mathrm{2}}} = \ottkw{error}$. 
+		Then combining \rrule{TransformProj} with \autoref{lem:canonical-trans} and \autoref{lem:value-expr-trans},
+		we have $ \mathcal{E}\llbracket   \blue{ \pi_{ i } }   \blue{\langle}  \source{v}_{{\mathrm{1}}}  \blue{,}  \source{v}_{{\mathrm{2}}}  \blue{\rangle}    \rrbracket  \ottnt{k} $ steps to \\ $ \ottsym{(}  \lambda  \mathit{x}  \ldotp  \ottkw{let} \, \mathit{y_{{\mathrm{1}}}}  \ottsym{:=}  \pi_1  \mathit{x} \, \ottkw{in} \,  \ldots   \ottsym{)} (  \langle   \mathcal{T}\llbracket  \source{ep}  \rrbracket  ,   \langle   \mathcal{V}\llbracket  \source{v}_{{\mathrm{1}}}  \rrbracket  ,   \mathcal{V}\llbracket  \source{v}_{{\mathrm{2}}}  \rrbracket  \rangle  \rangle  ) $.
+		If we $\beta$-reduce, and substitute for the let-expressions, we get $  \mathtt{PROD}_{ i }  (  \mathcal{T}\llbracket  \source{ep}  \rrbracket   \ottsym{,}  \ottsym{(}  \lambda  \mathit{z_{{\mathrm{1}}}}  \ldotp   \ldots   \ottsym{)} ) $.
+		We then apply \autoref{lem:ev-correct} and let-substitution to step to $\ottkw{error}$. 
+ 
+		\item \rrule{RedAscr}
+		Then $\source{e}_{{\mathrm{1}}}=\source{ep}_{{\mathrm{1}}} \,  \blue{(}  \source{ep}_{{\mathrm{2}}} \, \source{r}  \blue{)} $ and $\source{e}_{{\mathrm{2}}}=\ottsym{(}  \source{ep}_{{\mathrm{1}}}  \sqcap  \source{ep}_{{\mathrm{2}}}  \ottsym{)} \, \source{r}$.
+		Applying \rrule{TransformEv} with \autoref{lem:canonical-trans} and and \autoref{lem:value-expr-trans}, we can see that
+		this steps to $  \mathtt{MEET }  (  \mathcal{T}\llbracket  \source{ep}_{{\mathrm{1}}}  \rrbracket   \ottsym{,}   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{2}}}  \rrbracket   \ottsym{,}  \ottsym{(}  \lambda  \mathit{y}  \ldotp   \ottnt{k} (  \langle  \mathit{y} ,  \ottnt{u_{{\mathrm{2}}}} \rangle  )   \ottsym{)} ) $
+		where $ \mathcal{V}\llbracket  \source{ep}_{{\mathrm{2}}} \, \source{r}  \rrbracket  =  \langle   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{2}}}  \rrbracket  ,  \ottnt{u_{{\mathrm{2}}}} \rangle $. By \autoref{lem:ev-correct}, this steps to $ \ottnt{k} (  \langle   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{1}}}  \sqcap  \source{ep}_{{\mathrm{2}}}  \rrbracket  ,  \ottnt{u_{{\mathrm{2}}}} \rangle  ) $,
+		which we can also step to from $ \mathcal{E}\llbracket  \ottsym{(}  \source{ep}_{{\mathrm{1}}}  \sqcap  \source{ep}_{{\mathrm{2}}}  \ottsym{)} \, \source{r}  \rrbracket  \ottnt{k} $ by \autoref{lem:value-expr-trans}.
+
+
+		\item \rrule{RedAscrFail}
+		Then $\source{e}_{{\mathrm{1}}}=\source{ep}_{{\mathrm{1}}} \,  \blue{(}  \source{ep}_{{\mathrm{2}}} \, \source{r}  \blue{)} $ and $\source{e}_{{\mathrm{2}}}=\ottkw{error}$.
+		Applying \rrule{TransformEv} with \autoref{lem:canonical-trans} and and \autoref{lem:value-expr-trans}, we can see that
+		this steps to $  \mathtt{MEET }  (  \mathcal{T}\llbracket  \source{ep}_{{\mathrm{1}}}  \rrbracket   \ottsym{,}   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{2}}}  \rrbracket   \ottsym{,}  \ottsym{(}  \lambda  \mathit{y}  \ldotp   \ottnt{k} (  \langle  \mathit{y} ,  \ottnt{u_{{\mathrm{2}}}} \rangle  )   \ottsym{)} ) $
+		where $ \mathcal{V}\llbracket  \source{ep}_{{\mathrm{2}}} \, \source{r}  \rrbracket  =  \langle   \mathcal{T}\llbracket  \source{ep}_{{\mathrm{2}}}  \rrbracket  ,  \ottnt{u_{{\mathrm{2}}}} \rangle $. By \autoref{lem:ev-correct} along with our premise, this steps to $\ottkw{error}$.
+
+		\item \rrule{RedContext}: Then $\source{e}_{{\mathrm{1}}}=\ottnt{C}  \ottsym{[}  \source{e}'_{{\mathrm{1}}}  \ottsym{]} $ and $\source{e}_{{\mathrm{2}}}=\ottnt{C}  \ottsym{[}  \source{e}'_{{\mathrm{2}}}  \ottsym{]} $ where $\source{e}'_{{\mathrm{1}}}  \longrightarrow  \source{e}'_{{\mathrm{2}}}$.
+		By our hypothesis, $ \mathcal{E}\llbracket  \source{e}_{{\mathrm{1}}}  \rrbracket  \ottnt{k}  \equiv  \mathcal{E}\llbracket  \source{e}_{{\mathrm{2}}}  \rrbracket  \ottnt{k} $ for any $\ottnt{k}$.
+ 
+		Suppose that $\ottnt{C}$ is one of $\square \, \source{e}$, $\ottsym{(} \, \square \, \ottsym{,}  \source{e}  \ottsym{)}$, $\pi_1 \, \square$, $\pi_2 \, \square$, $\source{ep} \, \square$,
+		$\square \, \ottsym{+}  \source{e}$, $\square \, \stackrel{?}{=}  \source{e}$ or $\ottkw{if} \, \square \, \ottkw{then} \, \source{e}_{{\mathrm{3}}} \, \ottkw{else} \, \source{e}_{{\mathrm{4}}}$. These are the cases where the hole is the ``first''
+		sub-expression. 
+		In each case, there exists some $\ottnt{k'}$ such that $ \mathcal{E}\llbracket  \ottnt{C}  \ottsym{[}  \source{e}'_{{\mathrm{1}}}  \ottsym{]}  \rrbracket  \ottnt{k}  =   \mathcal{E}\llbracket  \source{e}'_{{\mathrm{1}}}  \rrbracket  \ottnt{k'}  $ and 
+		$ \mathcal{E}\llbracket  \ottnt{C}  \ottsym{[}  \source{e}'_{{\mathrm{2}}}  \ottsym{]}  \rrbracket  \ottnt{k}  =   \mathcal{E}\llbracket  \source{e}'_{{\mathrm{2}}}  \rrbracket  \ottnt{k'}  $. By our hypothesis, these terms are equal.
+		
+		The remaining cases are when the first sub-expression is already a value, and the context frame hole is the second sub-expression.
+		In these cases, there exists some $\source{v}$ (the first sub-expression) and $\ottnt{k'}$
+		such that $ \mathcal{E}\llbracket  \ottnt{C}  \ottsym{[}  \source{e}'_{{\mathrm{1}}}  \ottsym{]}  \rrbracket  \ottnt{k}  =   \mathcal{E}\llbracket  \source{v}  \rrbracket  \ottsym{(}  \lambda  \mathit{x}  \ldotp   \mathcal{E}\llbracket  \source{e}'_{{\mathrm{1}}}  \rrbracket  \ottnt{k'}   \ottsym{)}  $ and $ \mathcal{E}\llbracket  \ottnt{C}  \ottsym{[}  \source{e}'_{{\mathrm{2}}}  \ottsym{]}  \rrbracket  \ottnt{k}  =   \mathcal{E}\llbracket  \source{v}  \rrbracket  \ottsym{(}  \lambda  \mathit{x}  \ldotp   \mathcal{E}\llbracket  \source{e}'_{{\mathrm{2}}}  \rrbracket  \ottnt{k'}   \ottsym{)}  $.
+		We assume the bound variable $\mathit{x}$ is fresh, that is, it does not occur in $\source{e}'_{{\mathrm{1}}}$ or $\source{e}'_{{\mathrm{2}}}$.
+		We can apply \autoref{lem:value-expr-trans} to show that these step to $ [   \mathcal{V}\llbracket  \source{v}  \rrbracket   /  \mathit{x}  ]   \mathcal{E}\llbracket  \source{e}'_{{\mathrm{1}}}  \rrbracket  \ottnt{k'}  $
+		and $ [   \mathcal{V}\llbracket  \source{v}  \rrbracket   /  \mathit{x}  ]   \mathcal{E}\llbracket  \source{e}'_{{\mathrm{2}}}  \rrbracket  \ottnt{k'}  $ respectively. \autoref{lem:subst-commut} and our freshness assumption 
+		shows that these are equivalent to
+		$ \mathcal{E}\llbracket  \source{e}'_{{\mathrm{1}}}  \rrbracket  \ottsym{(}   [   \mathcal{V}\llbracket  \source{v}  \rrbracket   /  \mathit{x}  ]  \ottnt{k}   \ottsym{)} $ and $ \mathcal{E}\llbracket  \source{e}'_{{\mathrm{2}}}  \rrbracket  \ottsym{(}   [   \mathcal{V}\llbracket  \source{v}  \rrbracket   /  \mathit{x}  ]  \ottnt{k'}   \ottsym{)} $ respectively.
+		Finally, our hypothesis shows that these two terms are equivalent.
+
+		\item \rrule{RedContextFail}: then $\source{e}_{{\mathrm{1}}}=\ottnt{C}  \ottsym{[}  \source{e}'_{{\mathrm{1}}}  \ottsym{]} $ and $\source{e}_{{\mathrm{2}}}=\ottkw{error} $ where $\source{e}'_{{\mathrm{1}}}  \longrightarrow   \blue{ \ottkw{error} } $.
+		By our hypothesis, $ \mathcal{E}\llbracket  \source{e}'_{{\mathrm{1}}}  \rrbracket  \ottnt{k}  \equiv \ottkw{error}$ for any $\ottnt{k}$.
+
+		Suppose that $\ottnt{C}$ is one of $\square \, \source{e}$, $\ottsym{(} \, \square \, \ottsym{,}  \source{e}  \ottsym{)}$, $\pi_1 \, \square$, $\pi_2 \, \square$, $\source{ep} \, \square$,
+		$\square \, \ottsym{+}  \source{e}$, $\square \, \stackrel{?}{=}  \source{e}$ or $\ottkw{if} \, \square \, \ottkw{then} \, \source{e}_{{\mathrm{3}}} \, \ottkw{else} \, \source{e}_{{\mathrm{4}}}$. These are the cases where the hole is the ``first''
+		sub-expression. 
+		In each case, there exists some $\ottnt{k'}$ such that $ \mathcal{E}\llbracket  \ottnt{C}  \ottsym{[}  \source{e}'_{{\mathrm{1}}}  \ottsym{]}  \rrbracket  \ottnt{k}  =   \mathcal{E}\llbracket  \source{e}'_{{\mathrm{1}}}  \rrbracket  \ottnt{k'}  $. By our hypothesis,
+		this steps to $\ottkw{error}$.
+
+		
+		The remaining cases are when the first sub-expression is already a value, and the context frame hole is the second sub-expression.
+		In these cases, there exists some $\source{v}$ (the first sub-expression) and $\ottnt{k'}$
+		such that $ \mathcal{E}\llbracket  \ottnt{C}  \ottsym{[}  \source{e}'_{{\mathrm{1}}}  \ottsym{]}  \rrbracket  \ottnt{k}  =   \mathcal{E}\llbracket  \source{v}  \rrbracket  \ottsym{(}  \lambda  \mathit{x}  \ldotp   \mathcal{E}\llbracket  \source{e}'_{{\mathrm{1}}}  \rrbracket  \ottnt{k'}   \ottsym{)}  $ .
+		We assume the bound variable $\mathit{x}$ is fresh, that is, it does not occur in $\source{e}'_{{\mathrm{1}}}$.
+		We can apply \autoref{lem:value-expr-trans} to show that this steps to $ [   \mathcal{V}\llbracket  \source{v}  \rrbracket   /  \mathit{x}  ]   \mathcal{E}\llbracket  \source{e}'_{{\mathrm{1}}}  \rrbracket  \ottnt{k'}  $.
+		 \autoref{lem:subst-commut} and our freshness assumption 
+		show that this is equivalent to
+		$ \mathcal{E}\llbracket  \source{e}'_{{\mathrm{1}}}  \rrbracket  \ottsym{(}   [   \mathcal{V}\llbracket  \source{v}  \rrbracket   /  \mathit{x}  ]  \ottnt{k'}   \ottsym{)} $, which, by our hypothesis,
+		steps to $\ottkw{error}$.
+		
+
+		  
+	\end{itemize}
+\end{proof}
+
+The conventional whole-program correctness theorem follows from this directly.
+If we take natural numbers as observables, we note that if $\ottnt{t}\equiv\ottnt{n}$, then $\ottnt{t}  {\longrightarrow^{*} }   \blue{ \ottnt{n} } $,
+since $\ottnt{n}$ cannot reduce further. Induction on the number of source-reduction steps gives us whole-program correctness.
+
+\begin{corollary}[Whole Program Correctness] 
+	If ${eval(\source{e})=n}$, then ${eval\ottsym{(}   \mathcal{E}\llbracket  \source{e}  \rrbracket  \ottsym{(}  \lambda  \mathit{x}  \ldotp  \ottkw{halt} \, \ottsym{[}  \mathit{x}  \ottsym{]}  \ottsym{)}   \ottsym{)}=\ottkw{halt} \, \ottsym{[}   \mathcal{V}\llbracket   \blue{ \ottnt{n} }   \rrbracket   \ottsym{]}}$.
+\end{corollary}
+ 
+\section{Breaking Full Abstraction}
+
+Unfortunately, our translation does not preserve contextual equivalence of source programs.
+Consider $ \blue{(}    \blue{\lambda  \mathit{x} }  \ldotp   \blue{ \mathit{x} }    \blue{\boldsymbol{+} }  \ottsym{1}   \blue{)}  :   \blue{\mathsf{Nat} }  \blue{\to}  \blue{\mathsf{Nat} }  $ and $ \blue{(}    \blue{\lambda  \mathit{x} }  \ldotp   \{   \blue{\mathsf{Nat} }   \}  \,  \blue{ \mathit{x} }    \blue{\boldsymbol{+} }  \ottsym{1}   \blue{)}  :   \blue{\mathsf{Nat} }  \blue{\to}  \blue{\mathsf{Nat} }  $.
+The type rules of our language ensures that any value substituted for $\mathit{x}$ must be a number,
+so annotating $\mathit{x}$ with $ \{   \blue{\mathsf{Nat} }   \} $ has no effect.
+However, in our translation, such an annotation is translated into a meet operation between the annotation
+of $\mathit{x}$ and $ \mathtt{NAT } $. In the context $\square( \langle  \mathtt{ TAG } ,  \ottnt{n} \rangle )$, where $\mathtt{ TAG }$ is not $ \mathtt{NAT } $ or $ \mathtt{ DYN } $,
+this meet operation will fail, cause the second expression to produce $\ottkw{error}$ while the first succeeds.
+ 
+
+\bibliography{myrefs}  
+
+\end{document}

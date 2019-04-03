@@ -293,7 +293,7 @@ For the simple types $[[Bool]]$, $[[Nat]]$ and $[[?]]$, we simply place a dummy 
 but for compound function and product types, we insert a pair containing the (recursively computed) representation
 of the sub-components. 
 
-\begin{figure}[H]
+\begin{figure}[H] TODO  
 	\ottdefnEvTransform
 	\caption{Translation: Evidence}
 	\label{fig:trans-types}
@@ -342,7 +342,7 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 		 &          &   & [[ -- -- let lhs2 := pi1 sub2 in let rhs2 := pi2 sub2 in \\]]
 		 &          &   & [[ -- -- self [lhs1, lhs2, (\ meet1 . self[rhs1, rhs2, (\ meet2 . k[(PROD, (meet1, meet2))] )] )] ]] \\
 		 &          &   & [[ -- else error]]                                                                                   \\
-		 &          &   & [[ else error]]
+		 &          &   & [[ else error]]  
 		%
 	\end{align*}
 	\caption{CPS implementation of meet}
