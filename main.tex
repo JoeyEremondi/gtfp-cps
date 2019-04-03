@@ -74,8 +74,8 @@ ascribed multiple pieces of evidence. To enforce this syntactically, we separate
 from general values (metavariable $[[v]]$), which ascribe a raw value with zero or one pieces of evidence.
 
 While the original presentation of AGT treated terms as intrinsically typed values,
-we adopt the simpler approach used by \citet{parametricityRevisited}, where evidence ascription
-is included in the syntax for terms.
+we adopt the simpler approach used by \citet{Toro:2019:GPR:3302515.3290330}, where evidence ascription
+is included in the syntax for terms. 
 
 \begin{figure}[H] 
 	$[[n]] \in \mathbb{Z}$, $[[b]]\in\mathbb{B}$
@@ -143,9 +143,16 @@ Note that this is not subtyping: there is no contravariance in the rule for arro
 
 Including a notion of consistency in our type system allows us to type terms that would be ill-typed
 in a fully-static language.
-For example, $[[1 + {Nat}({Bool} true)]]$ is well-typed in our language: $[[empty |- true : Bool ]]$,
-and $[[{Bool} |- Bool ~=~ ?]]$, so $[[empty |- {Bool}true : ? ]]$. Similarly, $[[Nat |- ? ~=~ Nat]]$,
-so $[[empty |- {Nat}({Bool}true)]]$, making the addition well-typed.
+For example, $[[1 + <<Nat>>(<<Bool>> true)]]$ is well-typed in our language: $[[empty |- true : Bool ]]$,
+and $[[<<Bool>> |- Bool ~=~ ?]]$, so $[[empty |- <<Bool>>true : ? ]]$. Similarly, $[[<<Nat>> |- ? ~=~ Nat]]$,
+so $[[empty |- <<Nat>>(<<Bool>>true) : Nat]]$, making the addition well-typed.
+
+The meet operation gives us a means to combine different pieces of evidence for a value,
+which allows evidence to evolve and gain precision as a program runs.
+However, we also need operations on types, to extract typing information for particular
+components of a type, such as the domain and codomain of a function. These operations are partial: they produce $[[?]]$ 
+when given $[[?]]$, produce a result when given a type of the expected shape, and are undefined otherwise.
+We define these operations in \autoref{fig:type-ops}.
 
 We note that gradual typing usually begins with a definition of consistency, with precision and meet defined
 in terms of consistency. Since GTFL is not a contribution of our work, we keep our presentation small
@@ -160,6 +167,20 @@ and $[[T1]]$ is more precise than $[[T2]]$ if $[[T1 /\ T2 ==== T1]]$.
 	\label{fig:source-precision}
 \end{figure}
 
+
+\begin{figure}[H]
+	\begin{align*}
+	& [[dom (T1 -> T1)]] & = && [[T1]] \\ 
+	& [[dom ?]] & = && [[?]] \\
+	& [[cod (T1 -> T1)]] & = && [[T2]] \\ 
+	& [[cod ?]] & = && [[?]] \\
+	& [[Prod @ i (T1 * T2)]] & = && [[Ti]] && i\in\{1,2\} \\ 
+	& [[Prod @ i ?]] & = && [[?]] 
+	\end{align*}
+	\caption{Source Language: Partial Type Operations}
+	\label{fig:type-ops}
+\end{figure}
+
 \subsection{Runtime Semantics}
 
 \begin{figure}[H] 
@@ -168,14 +189,13 @@ and $[[T1]]$ is more precise than $[[T2]]$ if $[[T1 /\ T2 ==== T1]]$.
 	\label{fig:source-semantics}
 \end{figure}
 
-TODO: define domain, etc.
 
-As we saw above, $[[1 + {Nat}({Bool} true)]]$ was assigned a type in our language. But how should such a term behave?
+As we saw above, $[[1 + <<Nat>>(<<Bool>> true)]]$ was assigned a type in our language. But how should such a term behave?
 Allowing it to result in any integer value would require an arbitrary choice, so the only safe result
 of such a computation is $[[error]]$. Specifically, because values may only contain one piece of top-level evidence, 
 computation fails trying to combine the evidence objects $[[Bool]]$ and $[[Nat]]$, since their meet is undefined.
 
-We present the full semantics for GTFL in \autoref{fig:source-semantics.} In general, we have rules which one expects in a static language,
+We present the full semantics for GTFL in \autoref{fig:source-semantics}. In general, we have rules which one expects in a static language,
 plus rules accounting for values with evidence. When we have nested evidence it is combined with \rrule{RedAscr}. When applying a function
 using the rule \rrule{RedAppEv},
 we must first use domain information from the function's evidence to convert the argument to the type the function expects.
@@ -194,7 +214,7 @@ Similarly, errors are propagated with \rrule{RedContextFail}. The context rules 
 evaluation order.
 
 While somewhat complex, basing a gradual language around evidence has several advantages.
-First, the AGT approach allows us to take a pre-existing static langauge and introduce gradual types. 
+First, the AGT approach allows us to take a pre-existing static language and introduce gradual types. 
 Second, various properties of the language, such as type safety, hold by construction when using the evidence approach.
 
 
@@ -211,7 +231,7 @@ Second, various properties of the language, such as type safety, hold by constru
 
 Our target language, given in \autoref{fig:target-syntax}, is essentially an untyped version of the $\lambda^K$
  calculus presented by \citet{FtoTAL}.
- We have distinct syntactic classes for \textit{values} (metavarible $[[u]]$),
+ We have distinct syntactic classes for \textit{values} (metavariable $[[u]]$),
  and \textit{terms} (metavariable $[[t]]$). Each syntactic form for terms denotes
  a single operation on a value, and any nested computations must be explicitly
  represented with the passing of continuations.
@@ -231,7 +251,26 @@ Our target language, given in \autoref{fig:target-syntax}, is essentially an unt
 
 \section{The Translation} 
 
+With our source and target languages defined, we can specify a translation between the two.
+The key idea is that the evidence information in the source must be explicitly represented
+using nested pairs (effectively untyped trees) and integer tags. While operations on evidence,
+such as meet, were taken as atomic in the source, we provide explicit target implementations for these,
+and to ensure safety, sequence these operations before the operations on values are performed.
+
 \subsection{Translating Evidence}
+
+In \autoref{fig:trans-types}, we translate each evidence object into a pair.
+The first element of the pair is a tag, denoting the root type-constructor for the type.
+We assume we have defined distinct integer constants $[[NAT]], [[BOOL]], [[ARR]], and [[PROD]]$.
+For the simple types $[[Bool]]$, $[[Nat]]$ and $[[?]]$, we simply place a dummy value as the second pair element,
+but for compound function and product types, we insert a pair containing the (recursively computed) representation
+of the sub-components. 
+
+\begin{figure}[H]
+	\ottdefnEvTransform
+	\caption{Translation: Evidence}
+	\label{fig:trans-types}
+\end{figure}
 
 \subsubsection{Helper Functions}
 
@@ -295,25 +334,38 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 	\label{fig:dom-impl}
 \end{figure}
 
+\subsection{Transforming Terms}
+
 \begin{figure}[H]
 	\ottdefnTransform
-	\caption{Translation: Terms and Programs}  
+	\caption{Translation: Terms}  
 	\label{fig:trans-terms}
 \end{figure}
 
-\begin{figure}[H]
-	\ottdefnEvTransform
-	\caption{Translation: Evidence}
-	\label{fig:trans-types}
-\end{figure}
+
+
+
+
+\section{Whole Program Correctness}
+
+\subsection{Value Transformations}
+
+Since we use small-step semantics, our reduction rules specify how to perform individual operations
+on values, with context rules for performing nested computations. However, our translation does not distinguish
+between, for example, a pair containing values and a pair containing reducible expressions.
+In order to reason about the relationship between our reductions and our translation,
+we define a special translation for values, which will aid in reasoning about how our translation
+behaves when given values as input.
 
 \begin{figure}[H]
 	\ottdefnValTransform
-	\caption{Translation: Evidence}
+	\caption{Translation: Values}
 	\label{fig:trans-values}
 \end{figure}
 
-\section{Correctness}
+\subsection{Helper Lemmas}
+
+We first show that our translation of evidence preserves the semantics of operations on evidence.
 
 \begin{lemma}[Correctness of Evidence Translation]
 	\label{lem:ev-correct}
@@ -325,6 +377,11 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 	The same property holds for $[[dom ep]]$, $[[cod ep]]$, and $[[Prod@i ep]]$. 
 \end{lemma}
 
+Next, we show that our value translation always produces pairs. This is essential, since our source semantics
+can distinguish between terms with and without evidence. However, since there is no explicit evidence in our target,
+we represent all source values as evidence-value pairs in the target, with unascribed values simply
+having the evidence $[[DYN]]$.  
+
 \begin{lemma}[Canonical Forms for Translated Values]
 	\label{lem:canonical-trans}
 	For an irreducible $[[v]]$, $[[ [|v|] ==== ( [|ep|], u) ]] $ for some evidence $[[ep]]$ and CPS-value $[[u]]$.
@@ -334,6 +391,11 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 	By inversion on the definition of $[[ [|v|] ]]$.
 \end{proof}
 
+Next, we show that our value translation matches our term translation, after perhaps performing
+some computation. This lemma is crucial for connecting the behaviour of small-step reduction rules,
+which operate primarily on values, to the behaviour of the translations of these values.
+
+
 \begin{lemma}[Value and Expression Translations Match]
 	\label{lem:value-expr-trans}
 	Let $[[v]]$ be an irreducible term. Then, for any $[[k]]$, $[[v]]$, $[[ [|v|]k -->* k [ [|v|] ]  ]]$.
@@ -342,13 +404,13 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 	By induction on $[[v]]$. 
 
 	\begin{itemize}
-		\item Case $[[v]] = [[b]]$, $[[v]] = [[n]]$, or $[[v]] = [[\ x : T . e]]$: trivial.
+		\item Case $[[v]] = [[b]]$, $[[v]] = [[n]]$, or $[[v]] = [[\ x  . e]]$: trivial.
 		\item Case $[[v]] = [[(v1, v2)]]$.
 		      % By our hypothesis, for any $[[k0]]$, $[[ [|v1|]k0 -->* k0 [ [|v1|] ]  ]]$ and $[[ [|v2|]k0 -->* k0 [ [|v2|] ]  ]]$.
 		      So $[[ [|(v1, v2)|]k ==== [| v1 |](\ x1 . [|v2|](\ x2 . k[(DYN, (x1, x2))] ) )  ]]$,
 		      which, by our hypothesis, reduces to  $[[t1 -->* (\ x1 . (\ x2 . k[(DYN, (x1, x2))] )[ [|v2|] ] )[ [|v1|] ] ]]$,
 		      which we can then reduce to $[[k[(DYN, ([|v1|],[|v2|]))] ]]$.
-		\item Case $[[v]] = [[ep r]]$. Since all raw irreducibles are themselves irreducible,
+		\item Case $[[v]] = [[ep r]]$. Since all raw values are themselves irreducible,
 		      our inductive hypothesis gives that
 		      $[[ [|r|] (\ x . let x1 := pi1 x in let x2 := pi2 x in MEET [ [|ep|],x1, (\y . k [(y,x2)]) ] )]]$
 		      steps to $[[(\ x . let x1 := pi1 x in let x2 := pi2 x in MEET [ [|ep|],x1, (\y . k [(y,x2)]) ] )[ [|r|] ] ]]$.
@@ -362,6 +424,9 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 	\end{itemize}
 \end{proof}
 
+Finally, we show that our translation preserves substitution, which is needed to show the correctness
+of our translation of functions.
+
 \begin{lemma}[Translation Commutes With Substitution]
 	\label{lem:subst-commut}
 	$[[ [|[x |=> v]e|]([x |=> [|v|] ]k) -->* [x |=> [|v|] ][|e|]k   ]]$.   
@@ -370,6 +435,14 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 	Follows from straightforward induction on $[[e]]$, combined with \autoref{lem:value-expr-trans}
 	for the case where $[[e]]=[[x]]$.
 \end{proof}
+
+\subsection{Main Result}
+
+These lemmas give us the tools we need to prove our main result.
+We show that the translation takes a source term to a target term
+that is \textit{equivalent} to the result of reduction 
+Essentially, we are saying that if $[[e1 --> e2]]$, then $[[e1]]$ and $[[e2]]$
+translate to target terms that will eventually step to some common term.
 
 \begin{theorem}[Weak Simulation]
 
@@ -383,14 +456,14 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 		\item
 		      \rrule{RedIfTrue}: then $[[e1]]=[[if true then e2 else e3]]$.
 		      The translation $[[ [|true|]k' ==== k' [(DYN, true)]  ]]$ for any $[[k']]$,
-		      so $[[ [|if true then e2 else e3|]k ]]$ is
-		      $[[(\ x0 . let x := pi2 x0 in if x ([|e2|]k) ([|e3|]k) ) [(DYN, true)]  ]]$.
+		      so $[[ [|if true then e2 else e3|]k ]]$ is \\
+		      ${[[(\ x0 . let x := pi2 x0 in if x ([|e2|]k) ([|e3|]k) ) [(DYN, true)]  ]]}$.
 		      We can $\beta$-reduce to get $[[let x := pi2 (DYN, true) in if x [|e2|]k [|e3|]k ]]$,
 		      and we can substitute $[[true]]$ for $[[x]]$ and reduce the $\ottkw{if}$ to get $[[ [|e2|]k ]]$.
 
 		\item \rrule{RedIfFalse}: symmetric to RedIfTrue
 
-		\item \rrule{RedIfEv}: $[[e1]]=[[if ep b then e2' else e3']]$.
+		\item \rrule{RedIfEv}: $[[e1]]=[[if ep b then e2' else e3']]$. 
 		      We know that $[[ [| b|]k' ==== k' [(DYN, b)] ]]$,
 		      so $[[ [| ep b |]k'' ==== (\x. let x1 := pi1 x in let x2 := pi2 x in MEET[ [|ep|], x1, (\y.k''[(y,x2)]) ] )[(DYN,b)] ]]$.
 		      We can $\beta$-reduce, and substitute with the let-expressions, to get
@@ -399,11 +472,11 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 		      Since the translation of $\ottkw{if}$ ignores any evidence in the condition,
 		      we can use the same reasoning from RedIfTrue to show that it steps to $[[e2]]$ if $[[b]]$ is true, and $[[e3]]$ if $[[b]]$ is false.
  
-		\item \rrule{RedApp}: then $[[e1]] = [[ (\ x : T . e') v ]]$ and $[[e2]]=[[ [x |=> v]e' ]]$.
+		\item \rrule{RedApp}: then $[[e1]] = [[ (\ x  . e') v ]]$ and $[[e2]]=[[ [x |=> v]e' ]]$.
 		We assume our terms follow variable convention so that $[[x]]$ is not free in $[[k]]$.
 
 		Let $[[( [|ep|], u)]] = [[ [|v|] ]]$ (by \autoref{lem:canonical-trans}).
-        If we apply \autoref{lem:value-expr-trans}, we can see that $[[ [|(\ x : T . e') v|]k ]]$
+        If we apply \autoref{lem:value-expr-trans}, we can see that $[[ [|(\ x  . e') v|]k ]]$
         steps to \\$[[ (\ x1  x2. let y1 := pi1 x1 in ,,,)[(DYN, (\ x c . [|e'|]c )), ( [|ep|], u) ]  ]]$.
         We can $\beta$-reduce and apply the let-substitutions to then step to
         \\$[[ DOM [DYN, \y1' . COD [ DYN, \y1''. MEET [y1', [|ep|], (\ y3 . (\ x c . [|e'|]c ) [(y3, u), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')] ) ] ) ] )] ] ] ]]$.
@@ -418,25 +491,25 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 		Finally, our variable convention and \autoref{lem:subst-commut} give us that 
 		this is equivalent to $[[ [| [x |=> v]e' |]k  ]]$.
 
-		\item \rrule{RedAppEv}: then $[[e1]] = [[ ep1 (\ x : T . e') ep2 v ]]$ and $[[e2]]=[[ cod ep1 ([x |=> (dom ep1 /\ ep2) v]e') ]]$.
+		\item \rrule{RedAppEv}: then $[[e1]] = [[ ep1 (\ x  . e') ep2 v ]]$ and \\$[[e2]]=[[ cod ep1 ([x |=> (dom ep1 /\ ep2) v]e') ]]$. 
 		Let $[[( [|ep2|], u)]] = [[ [|v|] ]]$ (by \autoref{lem:canonical-trans}).
-        If we apply \autoref{lem:value-expr-trans}, we can see that $[[  [|ep1 (\ x : T . e') ep2 v|]k ]]$
+        If we apply \autoref{lem:value-expr-trans}, we can see that $[[  [|ep1 (\ x . e') ep2 v|]k ]]$
         steps to \\$[[ (\ x1  x2. let y1 := pi1 x1 in ,,,)[( [|ep1|] , (\ x c . [|e'|]c )), ( [|ep2|], u) ]  ]]$.
         We can $\beta$-reduce and apply the let-substitutions to then step to
         \\$[[ DOM [ [|ep1|] , \y1' . COD [  [|ep1|] , \y1''. MEET [y1', [|ep2|], (\ y3 . (\ x c . [|e'|]c ) [(y3, u), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')] ) ] ) ] )] ] ] ]]$.
         By applying \autoref{lem:ev-correct} for $[[DOM]], [[COD]]$ and $[[MEET]]$ of $[[?]]$ respectively,
         we can step to  
-        \\$[[  (\ x c . [|e'|]c ) [([|dom ep1 /\ep2|], u), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[ [|cod ep1|] , z3', (\z4. k[(z4, z3'')] ) ] ) ] ]]$.
-		This then $\beta$-reduces to 
-		\\$[[  [ x |=> ([|dom ep1 /\ep2|], u) ][|e'|](\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[ [|cod ep1|] , z3', (\z4. k[(z4, z3'')] ) ] ) ]]$.
+        \\$[[  (\ x c . [|e'|]c ) [([|dom ep1 /\ep2|], u), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in \\(--MEET[ [|cod ep1|] , z3', (\z4. k[(z4, z3'')] ) ]) ) ] ]]$.
+		\\This then $\beta$-reduces to 
+		\\$[[  [ x |=> ([|dom ep1 /\ep2|], u) ][|e'|](\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in \\(MEET[ [|cod ep1|] , z3', (\z4. k[(z4, z3'')] ) ]) ) ]]$.
 		% But, then, by \autoref{lem:ev-correct} and $\eta$-equivalence, this is equivalent to
 		% $[[  [ x |=> ([|dom ep1 /\ep2|], u) ][|e'|]k  ]]$.
-		But, by the rule \rrule{TransformEv}, this is $\alpha$-equivalent to  $[[ [|cod ep1 ([x |=> (dom ep1 /\ ep2) v]e')|]k ]]$,
+		\\But, by the rule \rrule{TransformEv}, this is $\alpha$-equivalent to  $[[ [|cod ep1 ([x |=> (dom ep1 /\ ep2) v]e')|]k ]]$,
 		giving us our result.
 
-		\item \rrule{RedAppEvFail}: then $[[e1]] = [[ ep1 (\ x : T . e') ep2 v ]]$ and $[[e2]]=[[ error ]]$.
+		\item \rrule{RedAppEvFail}: then $[[e1]] = [[ ep1 (\ x  . e') ep2 v ]]$ and $[[e2]]=[[ error ]]$.
 		Let $[[( [|ep2|], u)]] = [[ [|v|] ]]$ (by \autoref{lem:canonical-trans}).
-        If we apply \autoref{lem:value-expr-trans}, we can see that $[[  [|ep1 (\ x : T . e') ep2 v|]k ]]$
+        If we apply \autoref{lem:value-expr-trans}, we can see that $[[  [|ep1 (\ x  . e') ep2 v|]k ]]$
         steps to \\$[[ (\ x1  x2. let y1 := pi1 x1 in ,,,)[( [|ep1|] , (\ x c . [|e'|]c )), ( [|ep2|], u) ]  ]]$.
         We can $\beta$-reduce and apply the let-substitutions to then step to
         \\$[[ DOM [ [|ep1|] , \y1' . COD [  [|ep1|] , \y1''. MEET [y1', [|ep2|], (\ y3 . (\ x c . [|e'|]c ) [(y3, u), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')] ) ] ) ] )] ] ] ]]$.
@@ -462,19 +535,19 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 
 		\item \rrule{RedProjEv} Then $[[e1]]=[[pi @ i (ep (v1 , v2))]]$ and $[[e2]] = [[(Prod@i ep) vi]]$. 
 		Then combining \rrule{TransformProj} with \autoref{lem:canonical-trans} and \autoref{lem:value-expr-trans},
-		we have $[[ [|pi @ i (v1 , v2)|]k  ]]$ steps to $[[ (\ x . let y1 := pi1 x in ,,,)[ ( [|ep|], ([|v1|], [|v2|] ))] ]]$.
+		we have $[[ [|pi @ i (v1 , v2)|]k  ]]$ steps to \\$[[ (\ x . let y1 := pi1 x in ,,,)[ ( [|ep|], ([|v1|], [|v2|] ))] ]]$.
 		If we $\beta$-reduce, and substitute for the let-expressions, we get $[[ PROD @ i [ [|ep|], (\ z1 . ,,,)] ]]$.
 		We apply \autoref{lem:ev-correct} and let-substitution to step to $[[ MEET[ [|Prod @ i ep|], u1, (\z1' . k [(z1', u2)] )] ]]$,
 		where $[[ [|vi|] ]] = [[(u1, u2)]]$ by \autoref{lem:canonical-trans}.
 
 		Looking now at $[[e2]]$, we can apply \rrule{TransformEv} and \autoref{lem:canonical-trans}, then $\beta$-reduce
 		and substitute
-		to see that $[[ [|(Prod@i ep) vi|]k ]]$ also setps to $[[ MEET[ [|Prod @ i ep|], u1, (\z1' . k [(z1', u2)] )] ]]$.   
+		to see that $[[ [|(Prod@i ep) vi|]k ]]$ also steps to $[[ MEET[ [|Prod @ i ep|], u1, (\z1' . k [(z1', u2)] )] ]]$.   
 		
 		\item \rrule{RedProjFail}
 		Then $[[e1]]=[[pi @ i (ep (v1 , v2))]]$ and $[[e2]] = [[error]]$. 
 		Then combining \rrule{TransformProj} with \autoref{lem:canonical-trans} and \autoref{lem:value-expr-trans},
-		we have $[[ [|pi @ i (v1 , v2)|]k  ]]$ steps to $[[ (\ x . let y1 := pi1 x in ,,,)[ ( [|ep|], ([|v1|], [|v2|] ))] ]]$.
+		we have $[[ [|pi @ i (v1 , v2)|]k  ]]$ steps to \\ $[[ (\ x . let y1 := pi1 x in ,,,)[ ( [|ep|], ([|v1|], [|v2|] ))] ]]$.
 		If we $\beta$-reduce, and substitute for the let-expressions, we get $[[ PROD @ i [ [|ep|], (\ z1 . ,,,)] ]]$.
 		We then apply \autoref{lem:ev-correct} and let-substitution to step to $[[error]]$. 
 
@@ -535,8 +608,25 @@ We omit $\ottkw{cod}$, $\ottkw{proj}_1$ and $\ottkw{proj}_2$, but they are imple
 		  
 	\end{itemize}
 \end{proof}
+
+The conventional whole-program correctness theorem follows from this directly.
+If we take natural numbers as observables, we note that if $[[t]]\equiv[[n]]$, then $[[t -->* n]]$,
+since $[[n]]$ cannot reduce further. Induction on the number of source-reduction steps gives us whole-program correctness.
+
+\begin{corollary}[Whole Program Correctness] 
+	If ${eval([[e]])=n}$, then ${eval[[ ([|e|](\ x . halt [x]) )]]=[[halt [ [|n|] ] ]]}$.
+\end{corollary}
  
-\section{Incorrectness}
+\section{Breaking Full Abstraction}
+
+Unfortunately, our translation does not preserve contextual equivalence of source programs.
+Consider $[[(\ x . x + 1)]] : [[Nat -> Nat]]$ and $[[(\ x . <<Nat>>x + 1)]] : [[Nat -> Nat]]$.
+The type rules of our language ensures that any value substituted for $[[x]]$ must be a number,
+so annotating $[[x]]$ with $[[<<Nat>>]]$ has no effect.
+However, in our translation, such an annotation is translated into a meet operation between the annotation
+of $[[x]]$ and $[[NAT]]$. In the context $\square([[(TAG, n)]])$, where $[[TAG]]$ is not $[[NAT]]$ or $[[DYN]]$,
+this meet operation will fail, cause the second expression to produce $[[error]]$ while the first succeeds.
+ 
 
 \bibliography{myrefs}  
 

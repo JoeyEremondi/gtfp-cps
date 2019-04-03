@@ -129,12 +129,17 @@ T :: Type ::= {{com Types}}
   | ( T ) :: M :: Parens {{tex ([[T]])}}
   | [ T ] :: M :: Implicit {{ tex [[T]] }}
   % | T1 /\ T2 :: M :: Meet 
+  | dom T :: M :: Dom
+  | cod T :: M :: Cod
+  | Prod1 T :: M :: Left
+  | Prod2 T :: M :: Right
+  | Prod @ i T :: M :: Proji {{tex \ottkw{Proj}_{[[i]]} [[T]] }}
 
 Gamma {{tex \Gamma}} :: Gamma ::= {{com Environments}}
   | empty :: :: Empty {{tex \cdot}}
   | Gamma , ( x : T ) :: :: Cons 
 
-C :: C ::=                               {{ com evaluation context }}
+C :: C ::=                               {{ com Context Frames }}
   | __ e         ::  :: AppL                   
   | v __         ::  :: AppR                  
   | ( __ , e ) :: ::  PairL
@@ -187,6 +192,7 @@ t :: CPS ::=
   | [| e |] k :: M :: Translation {{tex \mathcal{E}\llbracket [[e]] \rrbracket [[k]] }}
   | [ x |=> u ] t :: M :: Subst {{tex  [ [[u]] / [[x]] ] [[t]] }}
   | \\ :: M :: Newline {{tex \\ }}
+  | \\( t ) :: M :: NL {{tex \\ [[t]] }}
   | -- t :: M :: Indent {{tex \qquad [[t]] }}
   | * :: M :: Blank {{tex }} 
   | iif u t1 :: M :: OnearmIf {{tex \ottkw{ if }\ [[u]]\ \ottkw{ then }\ [[t1]]\ }}
