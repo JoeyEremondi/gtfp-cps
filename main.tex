@@ -28,7 +28,8 @@
 \usepackage{stmaryrd}   
 
 \usepackage{libertine} 
-\usepackage{inconsolata}
+\usepackage{fontspec}
+\setmonofont{inconsolata} 
 % \usepackage{libertinust1math}
 
 \usepackage{keyval}
@@ -57,7 +58,7 @@
 \newsource[\NTCAPTURELOW{\sourcestyle }]{v}{v}
 \newsource[\NTCAPTURELOW{\sourcestyle }]{T}{\tau}
 \newsource[\NTCAPTURELOW{\sourcestyle }]{ep}{\varepsilon}
-\newsource[\NTCAPTURELOW{\sourcestyle }]{Gamma}{\Gamma} 
+\newsource[\NTCAPTURELOW{\sourcestyle }]{Gamma}{\Gamma}  
 
 \newNTclass{Ltarget}
 \newLtarget[\NTCAPTURELOW{\targetstyle }]{u}{u}
@@ -93,7 +94,7 @@ integers, booleans, and base types, except that a term $[[e]]$
 may be ascribed with \textit{evidence} $[[epsilon]]$.
 This evidence contains typing information that evolves throughout the run of a program.
 We explain evidence in detail in \autoref{subsec:type-rules}.
-Because gradual typing may result in dynamic type errors, we have a special failure term $[[error]]$.
+Because gradual typing may result in dynamic type errors, we have a special failure term $[[ SOURCE[error] ]]$.
 
 Values are defined in the usual way, except that we do not allow a value to be
 ascribed multiple pieces of evidence. To enforce this syntactically, we separate \textit{raw values}
@@ -130,14 +131,14 @@ type knowledge we currently have about $[[e]]$, though as we will see below,
 $[[ep]]$ may not exactly match the type we treat $[[e]]$ as having.  
 
 
-\begin{figure}[H]
+\begin{figure}[H] 
 
 	\nonterms{T}
-	\nonterms{Gamma}
+	\nonterms{Gamma}  
 	\nonterms{ep}
 
 	\caption{Source Language Syntax: Types}
-	\label{fig:type-syntax}
+	\label{fig:type-syntax} 
 \end{figure}
 
 \subsection{Static Semantics}
@@ -219,7 +220,7 @@ and $[[T1]]$ is more precise than $[[T2]]$ if $[[T1 /\ T2 ==== T1]]$.
 
 As we saw above, $[[1 + <<Nat>>(<<Bool>> true)]]$ was assigned a type in our language. But how should such a term behave?
 Allowing it to result in any integer value would require an arbitrary choice, so the only safe result
-of such a computation is $[[error]]$. Specifically, because values may only contain one piece of top-level evidence, 
+of such a computation is $[[ SOURCE[error] ]]$. Specifically, because values may only contain one piece of top-level evidence, 
 computation fails trying to combine the evidence objects $[[Bool]]$ and $[[Nat]]$, since their meet is undefined.
 
 We present the full semantics for GTFL in \autoref{fig:source-semantics}. In general, we have rules which one expects in a static language,
@@ -235,7 +236,7 @@ Similarly, in \rrule{RedAppEvPartial}, if we apply a function with evidence to a
 ascribed evidence $[[?]]$.
 
 If any of the evidence operations in the above rules are undefined, then the only way to preserve safety
-is to step to $[[error]]$, which is what happens in \rrule{RedAppEvFail}, \rrule{RedProjFail} and \rrule{RedAscrFail}.
+is to step to $[[ SOURCE[error] ]]$, which is what happens in \rrule{RedAppEvFail}, \rrule{RedProjFail} and \rrule{RedAscrFail}.
 Context frames are defined in \autoref{fig:source-contexts}, and \rrule{RedContext} allows us to step within any context frame.
 Similarly, errors are propagated with \rrule{RedContextFail}. The context rules establish a left-to-right, call-by-value
 evaluation order.
@@ -253,7 +254,7 @@ Second, various properties of the language, such as type safety, hold by constru
 \end{figure} 
 
 
-
+ 
 \section{The Target Language}
 
 Our target language, given in \autoref{fig:target-syntax}, is essentially an untyped version of the $\lambda^K$
@@ -270,7 +271,7 @@ Our target language, given in \autoref{fig:target-syntax}, is essentially an unt
 
 \begin{figure}[H]
 	\nonterms{u}
-	\nonterms{d}
+	\nonterms{d} 
 	\nonterms{t}
 	\caption{Target Language: Syntax}
 	\label{fig:target-syntax}
@@ -284,31 +285,31 @@ using nested pairs (effectively untyped trees) and integer tags. While operation
 such as meet, were taken as atomic in the source, we provide explicit target implementations for these,
 and to ensure safety, sequence these operations before the operations on values are performed.
 
-\subsection{Translating Evidence}
+\subsection{Translating Evidence} 
 
 In \autoref{fig:trans-types}, we translate each evidence object into a pair.
 The first element of the pair is a tag, denoting the root type-constructor for the type.
-We assume we have defined distinct integer constants $[[NAT]], [[BOOL]], [[ARR]], and [[PROD]]$.
+We assume we have defined distinct integer constants $[[NAT]], [[BOOL]], [[DYN]], [[ARR]]$, and $[[PROD]]$.
 For the simple types $[[Bool]]$, $[[Nat]]$ and $[[?]]$, we simply place a dummy value as the second pair element,
 but for compound function and product types, we insert a pair containing the (recursively computed) representation
-of the sub-components. 
+of the sub-components.              
 
-\begin{figure}[H] TODO  
+\begin{figure}[H]  
 	\ottdefnEvTransform
 	\caption{Translation: Evidence}
 	\label{fig:trans-types}
-\end{figure}
+\end{figure} 
 
 \subsubsection{Helper Functions}
 
 With our evidence represented as tuples with integer tags, we must represent the partial functions
 on types in our target language.
-The implementation is given in \autoref{fig:meet-impl}.
+The implementation is given in \autoref{fig:meet-impl}. 
 Doing this is straightforward: if one argument is $[[?]]$,
 then we return the other argument. Otherwise, we check if we have simple or complex types.
-For simple types, either $[[Bool /\ Bool ==== Bool]]$, $[[Nat /\ Nat ==== Nat]]$.
+For simple types, either $[[Bool /\ Bool ==== Bool]]$ or $[[Nat /\ Nat ==== Nat]]$.
 For complex types, we check that the tags agree, then recursively compute the meets of the sub-components.
-If neither argument is $[[?]]$, and there is a tag mismatch, then we must raise an exception, retuning the $[[error]]$
+If neither argument is $[[?]]$, and there is a tag mismatch, then we must raise an exception, retuning the $[[ TARGET[error] ]]$
 continuation.
 
 For the partial functions decomposing types, we first check if the input is $[[?]]$,
@@ -506,7 +507,7 @@ translate to target terms that will eventually step to some common term.
         If we apply \autoref{lem:value-expr-trans}, we can see that $[[ [|(\ x  . e') v|]k ]]$
         steps to \\$[[ (\ x1  x2. let y1 := pi1 x1 in ,,,)[(DYN, (\ x c . [|e'|]c )), ( [|ep|], u) ]  ]]$.
         We can $\beta$-reduce and apply the let-substitutions to then step to
-        \\$[[ DOM [DYN, \y1' . COD [ DYN, \y1''. MEET [y1', [|ep|], (\ y3 . (\ x c . [|e'|]c ) [(y3, u), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')] ) ] ) ] )] ] ] ]]$.
+        \\$[[ DOM [DYN, \y1' . COD [ DYN, \y1''. MEET [y1', [|ep|], (\ y3 . (\ x c . [|e'|]c ) [(y3, u), (\z3 . \\( let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')] ) ] ) ) ] )] ] ] ]]$.
         By applying \autoref{lem:ev-correct} for $[[DOM]], [[COD]]$ and $[[MEET]]$ of $[[?]]$ respectively,
         we can step to  
         \\$[[  (\ x c . [|e'|]c ) [([|ep|], u), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[DYN, z3', (\z4. k[(z4, z3'')] ) ] ) ] ]]$.
@@ -523,7 +524,7 @@ translate to target terms that will eventually step to some common term.
         If we apply \autoref{lem:value-expr-trans}, we can see that $[[  [|ep1 (\ x . e') ep2 v|]k ]]$
         steps to \\$[[ (\ x1  x2. let y1 := pi1 x1 in ,,,)[( [|ep1|] , (\ x c . [|e'|]c )), ( [|ep2|], u) ]  ]]$.
         We can $\beta$-reduce and apply the let-substitutions to then step to
-        \\$[[ DOM [ [|ep1|] , \y1' . COD [  [|ep1|] , \y1''. MEET [y1', [|ep2|], (\ y3 . (\ x c . [|e'|]c ) [(y3, u), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')] ) ] ) ] )] ] ] ]]$.
+        \\$[[ DOM [ [|ep1|] , \y1' . COD [  [|ep1|] ,  \y1''.  MEET [y1', [|ep2|], (\ y3 . (\ x c . [|e'|]c ) [(y3, u), (\z3 . \\( let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')] ) ] ) ) ] )] ] ] ]]$.
         By applying \autoref{lem:ev-correct} for $[[DOM]], [[COD]]$ and $[[MEET]]$ of $[[?]]$ respectively,
         we can step to  
         \\$[[  (\ x c . [|e'|]c ) [([|dom ep1 /\ep2|], u), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in \\(--MEET[ [|cod ep1|] , z3', (\z4. k[(z4, z3'')] ) ]) ) ] ]]$.
@@ -534,14 +535,14 @@ translate to target terms that will eventually step to some common term.
 		\\But, by the rule \rrule{TransformEv}, this is $\alpha$-equivalent to  $[[ [|cod ep1 ([x |=> (dom ep1 /\ ep2) v]e')|]k ]]$,
 		giving us our result.
 
-		\item \rrule{RedAppEvFail}: then $[[e1]] = [[ ep1 (\ x  . e') ep2 v ]]$ and $[[e2]]=[[ error ]]$.
+		\item \rrule{RedAppEvFail}: then $[[e1]] = [[ ep1 (\ x  . e') ep2 v ]]$ and $[[e2]]=[[ SOURCE[error] ]]$.
 		Let $[[( [|ep2|], u)]] = [[ [|v|] ]]$ (by \autoref{lem:canonical-trans}).
         If we apply \autoref{lem:value-expr-trans}, we can see that $[[  [|ep1 (\ x  . e') ep2 v|]k ]]$
         steps to \\$[[ (\ x1  x2. let y1 := pi1 x1 in ,,,)[( [|ep1|] , (\ x c . [|e'|]c )), ( [|ep2|], u) ]  ]]$.
         We can $\beta$-reduce and apply the let-substitutions to then step to
-        \\$[[ DOM [ [|ep1|] , \y1' . COD [  [|ep1|] , \y1''. MEET [y1', [|ep2|], (\ y3 . (\ x c . [|e'|]c ) [(y3, u), (\z3 . let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')] ) ] ) ] )] ] ] ]]$.
+        \\$[[ DOM [ [|ep1|] , \y1' . COD [  [|ep1|] , \y1''. MEET [y1', [|ep2|], (\ y3 . (\ x c . [|e'|]c ) [(y3, u), (\z3 . \\( let z3' := pi1 z3 in let z3'' := pi2 z3 in MEET[y1'', z3', (\z4. k[(z4, z3'')] ) ] ) ) ] )] ] ] ]]$.
         By applying \autoref{lem:ev-correct} for $[[MEET]]$ with our premise that $[[dom ep1 /\ ep2 undefined]]$
-		we can step to  $[[error]]$.
+		we can step to  $[[ TARGET[error] ]]$.
 		
 		\item \rrule{RedAppEvPartial}: the same reasoning as \rrule{RedAppEv}, except that by \autoref{lem:value-expr-trans},
 		we know that the argument's translation is annotated with $[[?]]$.
@@ -572,11 +573,11 @@ translate to target terms that will eventually step to some common term.
 		to see that $[[ [|(Prod@i ep) vi|]k ]]$ also steps to $[[ MEET[ [|Prod @ i ep|], u1, (\z1' . k [(z1', u2)] )] ]]$.   
 		
 		\item \rrule{RedProjFail}
-		Then $[[e1]]=[[pi @ i (ep (v1 , v2))]]$ and $[[e2]] = [[error]]$. 
+		Then $[[e1]]=[[pi @ i (ep (v1 , v2))]]$ and $[[e2]] = [[SOURCE[error] ]]$. 
 		Then combining \rrule{TransformProj} with \autoref{lem:canonical-trans} and \autoref{lem:value-expr-trans},
 		we have $[[ [|pi @ i (v1 , v2)|]k  ]]$ steps to \\ $[[ (\ x . let y1 := pi1 x in ,,,)[ ( [|ep|], ([|v1|], [|v2|] ))] ]]$.
 		If we $\beta$-reduce, and substitute for the let-expressions, we get $[[ PROD @ i [ [|ep|], (\ z1 . ,,,)] ]]$.
-		We then apply \autoref{lem:ev-correct} and let-substitution to step to $[[error]]$. 
+		We then apply \autoref{lem:ev-correct} and let-substitution to step to $[[TARGET[error] ]]$. 
  
 		\item \rrule{RedAscr}
 		Then $[[e1]]=[[ep1 (ep2 r)]]$ and $[[e2]]=[[(ep1 /\ ep2) r]]$.
@@ -587,10 +588,10 @@ translate to target terms that will eventually step to some common term.
 
 
 		\item \rrule{RedAscrFail}
-		Then $[[e1]]=[[ep1 (ep2 r)]]$ and $[[e2]]=[[error]]$.
+		Then $[[e1]]=[[ep1 (ep2 r)]]$ and $[[e2]]=[[SOURCE[error] ]]$.
 		Applying \rrule{TransformEv} with \autoref{lem:canonical-trans} and and \autoref{lem:value-expr-trans}, we can see that
 		this steps to $[[MEET[ [|ep1|], [|ep2|], (\ y . k[(y, u2) ]) ] ]]$
-		where $[[ [|ep2 r|] ]] = [[ ([|ep2|], u2) ]]$. By \autoref{lem:ev-correct} along with our premise, this steps to $[[error]]$.
+		where $[[ [|ep2 r|] ]] = [[ ([|ep2|], u2) ]]$. By \autoref{lem:ev-correct} along with our premise, this steps to $[[TARGET[error] ]]$.
 
 		\item \rrule{RedContext}: Then $[[e1]]=[[C[e1'] ]] $ and $[[e2]]=[[C[e2'] ]] $ where $[[e1' --> e2']]$.
 		By our hypothesis, $[[ [|e1|]k ]] \equiv [[ [|e2|]k ]]$ for any $[[k]]$.
@@ -611,14 +612,14 @@ translate to target terms that will eventually step to some common term.
 		$[[ [| e1' |]( [x |=> [|v|] ]k ) ]]$ and $[[ [| e2' |]([x |=> [|v|] ]k') ]]$ respectively.
 		Finally, our hypothesis shows that these two terms are equivalent.
 
-		\item \rrule{RedContextFail}: then $[[e1]]=[[C[e1'] ]] $ and $[[e2]]=[[error]] $ where $[[e1' --> error]]$.
-		By our hypothesis, $[[ [|e1'|]k ]] \equiv [[ error ]]$ for any $[[k]]$.
+		\item \rrule{RedContextFail}: then $[[e1]]=[[C[e1'] ]] $ and $[[e2]]=[[SOURCE[error] ]] $ where $[[e1' --> error]]$.
+		By our hypothesis, $[[ [|e1'|]k ]] \equiv [[ TARGET[error] ]]$ for any $[[k]]$.
 
 		Suppose that $[[C]]$ is one of $[[ __ e]]$, $[[(__, e)]]$, $[[pi1 __]]$, $[[pi2 __]]$, $[[ep __]]$,
 		$[[__ + e]]$, $[[__ == e]]$ or $[[if __ then e3 else e4]]$. These are the cases where the hole is the ``first''
 		sub-expression. 
 		In each case, there exists some $[[k']]$ such that $[[ [|C[e1'] |]k ==== [|e1'|]k' ]]$. By our hypothesis,
-		this steps to $[[error]]$.
+		this steps to $[[ TARGET[error] ]]$.
 
 		
 		The remaining cases are when the first sub-expression is already a value, and the context frame hole is the second sub-expression.
@@ -629,7 +630,7 @@ translate to target terms that will eventually step to some common term.
 		 \autoref{lem:subst-commut} and our freshness assumption 
 		show that this is equivalent to
 		$[[ [| e1' |]([x |=> [|v|] ]k') ]]$, which, by our hypothesis,
-		steps to $[[error]]$.
+		steps to $[[ TARGET[error] ]]$.
 		
 
 		  
@@ -637,8 +638,10 @@ translate to target terms that will eventually step to some common term.
 \end{proof}
 
 The conventional whole-program correctness theorem follows from this directly.
-If we take natural numbers as observables, we note that if $[[t]]\equiv[[n]]$, then $[[t -->* n]]$,
-since $[[n]]$ cannot reduce further. Induction on the number of source-reduction steps gives us whole-program correctness.
+We note that if $[[t]]\equiv[[ halt[u] ]]$, then $[[t -->* halt[u] ]]$,
+since $[[ halt[u] ]]$ cannot reduce further. 
+Using natural numbers as a set of observable values,
+we can perform induction on the number of source-reduction steps gives us whole-program correctness.
 
 \begin{corollary}[Whole Program Correctness] 
 	If ${eval([[e]])=n}$, then ${eval[[ ([|e|](\ x . halt [x]) )]]=[[halt [ [|n|] ] ]]}$.
@@ -652,7 +655,7 @@ The type rules of our language ensures that any value substituted for $[[x]]$ mu
 so annotating $[[x]]$ with $[[<<Nat>>]]$ has no effect.
 However, in our translation, such an annotation is translated into a meet operation between the annotation
 of $[[x]]$ and $[[NAT]]$. In the context $\square([[(TAG, n)]])$, where $[[TAG]]$ is not $[[NAT]]$ or $[[DYN]]$,
-this meet operation will fail, cause the second expression to produce $[[error]]$ while the first succeeds.
+this meet operation will fail, cause the second expression to produce $[[ TARGET[error] ]]$ while the first succeeds.
  
 
 \bibliography{myrefs}  

@@ -46,10 +46,10 @@ grammar
 n  :: Natural ::= {{com Natural Numbers }}
   |  n1 :+: n2  :: M :: Plus {{tex [[n1]] \black{+} [[n2]]}} %TODO color
   | DYN :: M :: Dyn {{tex \mathtt{ DYN } }}
-  | BOOL :: M :: Bool {{tex \mathtt{BOOL } }}
-  | NAT :: M :: Nat {{tex \mathtt{NAT } }}
-  | ARR :: M :: Arr {{tex \mathtt{ARROW } }}
-  | PROD :: M :: Prod {{tex \mathtt{PRODUCT } }}
+  | BOOL :: M :: Bool {{tex \red{\mathtt{BOOL } } }}
+  | NAT :: M :: Nat {{tex \red{\mathtt{NAT } } }}
+  | ARR :: M :: Arr {{tex \red{ \mathtt{ARROW } } }}
+  | PROD :: M :: Prod {{tex \red{ \mathtt{PRODUCT } } }}
   | 0 :: M :: Zero
 
 b {{tex b}} :: Boolean ::= {{ com Booleans }}
@@ -85,6 +85,7 @@ e {{tex \source{e} }} :: e ::=
   | 0 :: M :: Num0
   | 1 :: M :: Num1
   | e e1 ... ei :: M :: MApp
+  | SOURCE[ e ] :: M :: Source {{tex [[e]] }}
   % | ( e1 , .... ,  ei ) :: M :: PairMany
 
 
@@ -108,7 +109,7 @@ v {{tex \source{v} }} :: Irr ::= {{com Irreducable (closed) terms }}
   % | ( v1 , .... ,  vi ) :: M :: PairMany
 
 ep {{tex \source{ep} }} :: Evidence ::= 
-  | << T >> :: :: Ev {{tex \{ [[T]] \} }}
+  | << T >> :: :: Ev {{tex \blue{\llparenthesis } [[T]] \blue{\rrparenthesis} }}
   | ep1 /\ ep2 :: M :: Meet
   | dom ep :: M :: Dom
   | cod ep :: M :: Cod
@@ -137,8 +138,8 @@ T {{tex \source{T} }} :: Type ::= {{com Types}}
   | Prod @ i T :: M :: Proji {{tex \ottkw{Proj}_{[[i]]} [[T]] }}
 
 Gamma {{ tex \blue{\Gamma} }} :: Gamma ::= {{com Environments}}
-  | empty :: :: Empty {{tex \cdot}}
-  | Gamma , ( x : T ) :: :: Cons 
+  | empty :: :: Empty {{tex \blue{ \cdot } }}
+  | Gamma , ( x : T ) :: :: Cons {{tex [[Gamma]] \blue{,([[x]] :} [[T]] \blue{)} }}
 
 C :: C ::=                               {{ com Context Frames }}
   | __ e         ::  :: AppL                   
@@ -155,52 +156,57 @@ C :: C ::=                               {{ com Context Frames }}
   | if __ then e1 else e2 :: :: If
 
 
-u , k :: CPSValue ::= 
-  | x :: :: Var
-  | n :: :: Nat
-  | b :: :: Bool
-  | fix x u :: :: Fix
-  |  \ x1 ... xi . t  :: :: Fun 
-  | ( u1 , u2 ) :: :: Pair {{tex \langle [[u1]], [[u2]]\rangle }}
-  | ( u ) :: M :: Parens
-  | MEET :: M :: MeetFun {{tex \mathtt{MEET } }}
-  | DOM ::  M :: DomFun {{tex \mathtt{DOM } }}
-  | COD :: M :: CodFun {{tex \mathtt{COD } }}
-  | PROD1 :: M :: Prod1 {{tex \mathtt{PROD}_1 }}
-  | PROD2 :: M :: Prod2 {{tex \mathtt{PROD}_2 }}
-  | PROD @ i :: M :: Prodi {{tex \mathtt{PROD}_{[[i]]} }}
-  | [| ep |] :: M :: TTrans {{tex \mathcal{T}\llbracket [[ep]] \rrbracket}}
-  | [| v |] :: M :: VTrans {{tex \mathcal{V}\llbracket [[v]] \rrbracket}}
-  | [ x |=> u ] u' :: M :: Subst {{tex  [ [[u]] / [[x]] ] [[u']] }}
 
-d :: CPSDecl ::=
-  | x := u :: :: Def
-  | x := pi1 u :: :: Proj1
-  | x := pi2 u :: :: Proj2
-  | x := u1 + u2 :: :: Plus
-  | x := u1 == u2 :: :: Eq
-  | x := pi @ i u :: M :: Proji {{tex [[x]] := \pi_{[[i]]}\ [[u]] }}
+u {{tex \Ltarget{u} }} , k {{tex \Ltarget{k} }} :: CPSValue ::= 
+  | x :: :: Var {{tex \red{[[x]]} }}
+  | n :: :: Nat {{tex \red{[[n]]} }}
+  | b :: :: Bool {{tex \red{[[b]]} }}
+  | fix x u :: :: Fix {{tex \red{\ottkw{fix}\ [[x]]}\ [[u]]  }}
+  |  \ vars . t  :: :: Fun {{tex \red{\lambda [[vars]]}\ldotp [[t]] }}
+  | ( u1 , u2 ) :: :: Pair {{tex \red{\langle} [[u1]] \red{,} [[u2]]\red{\rangle} }}
+  | ( u ) :: M :: Parens {{tex \red{(} [[u]] \red{)} }}
+  | MEET :: M :: MeetFun {{tex \red{\mathtt{MEET } } }}
+  | DOM ::  M :: DomFun {{tex \red{\mathtt{DOM } } }}
+  | COD :: M :: CodFun {{tex \red{\mathtt{COD } } }}
+  | PROD1 :: M :: Prod1 {{tex \red{ \mathtt{PROD}_1 } }}
+  | PROD2 :: M :: Prod2 {{tex \red{ \mathtt{PROD}_2 } }}
+  | PROD @ i :: M :: Prodi {{tex \red{ \mathtt{PROD}_\black{[[i]]} } }}
+  | [| ep |] :: M :: TTrans {{tex \black{\mathcal{T} \llbracket} [[ep]] \black{\rrbracket} }}
+  | [| v |] :: M :: VTrans {{tex \black{\mathcal{V}\llbracket } [[v]] \black{\rrbracket} }}
+  | [ x |=> u ] u' :: M :: Subst {{tex  \black{[} [[u]] \black{/} [[x]] \black{]} [[u']] }}
 
 
-t :: CPS ::= 
-  | v :: :: Value 
-  | let d in t :: :: Let
-  | u [ arg ] :: :: App {{tex [[u]]([[arg]])}} 
-  | if u t1 t2 :: :: If {{tex \ottkw{ if }\ [[u]]\ \ottkw{ then }\ [[t1]]\ \ottkw{ else }\ [[t2]] }}
-  | halt [ u ] :: :: ReturnHalt
-  | error :: :: ErrorHalt
-  | ( t ) :: M :: Parens 
+vars {{tex \red{\mathrm{x}_\black{1} }\ldots \red{\mathrm{x}_\black{i} } }} :: vars ::= 
+  | x1 .. xi :: :: Vars
+
+d {{ tex \Ltarget{d} }} :: CPSDecl ::=
+  | x := u :: :: Def {{tex \red{[[x]] :=} [[u]] }}
+  | x := pi1 u :: :: Proj1 {{tex \red{[[x]] := \pi_1} [[u]] }}
+  | x := pi2 u :: :: Proj2 {{tex \red{[[x]] := \pi_2} [[u]] }}
+  | x := u1 + u2 :: :: Plus {{tex \red{[[x]] := } [[u1]] \red{+} [[u2]] }}
+  | x := u1 == u2 :: :: Eq  {{tex \red{[[x]] := } [[u1]] \red{\stackrel{?}{=} } [[u2]] }}
+  | x := pi @ i u :: M :: Proji {{tex [[x]] := \red{\pi}_\black{[[i]]}\ [[u]] }}
+
+
+t  {{tex \Ltarget{t} }}  :: CPS ::= 
+  | let d in t :: :: Let {{tex \red{\ottkw{let}\ } [[d]] \red{\ottkw{in}\ } [[t]] }}
+  | u [ arg ] :: :: App {{tex [[u]] \red{(} [[arg]] \red{)} }} 
+  | if u t1 t2 :: :: If {{tex \red{\ottkw{ if } }\ [[u]]\ \red{\ottkw{ then } }\ [[t1]]\ \red{ \ottkw{ else } }\ [[t2]] }}
+  | halt [ u ] :: :: ReturnHalt {{tex \red{\ottkw{halt} [ } [[u]] \red{]} }}
+  | error :: :: ErrorHalt {{tex \red{\ottkw{error} } }}
+  | ( t ) :: M :: Parens {{tex \red{(} [[t]] \red{)} }}
   | [| e |] k :: M :: Translation {{tex \mathcal{E}\llbracket [[e]] \rrbracket [[k]] }}
   | [ x |=> u ] t :: M :: Subst {{tex  [ [[u]] / [[x]] ] [[t]] }}
   | \\ :: M :: Newline {{tex \\ }}
   | \\( t ) :: M :: NL {{tex \\ [[t]] }}
   | -- t :: M :: Indent {{tex \qquad [[t]] }}
   | * :: M :: Blank {{tex }} 
-  | iif u t1 :: M :: OnearmIf {{tex \ottkw{ if }\ [[u]]\ \ottkw{ then }\ [[t1]]\ }}
-  | else t :: M :: Else {{tex \ottkw{ else }\ [[t]]  }}
+  | iif u t1 :: M :: OnearmIf {{tex \red{\ottkw{ if } }\ [[u]]\ \red{\ottkw{ then } }\ [[t1]]\ }}
+  | else t :: M :: Else {{tex \red{\ottkw{ else } }\ [[t]]  }}
   | ,,, :: M :: Ldots {{tex \ldots}}
+  | TARGET[ t ] :: M :: Source {{tex [[t]] }}
 
-arg :: Arg ::=
+arg {{tex \red{\mathrm{u}_\black{1} } \ldots \red{\mathrm{u}_\black{i} } }} :: Arg ::=
   | u1 , ... , ui :: :: Seq
 
 
