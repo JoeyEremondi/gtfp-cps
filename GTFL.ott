@@ -13,6 +13,7 @@ embed {{tex-wrap-pre
 \geometry{a4paper,dvips,twoside,left=22.5mm,right=22.5mm,top=20mm,bottom=30mm}
 \usepackage{color}
 \usepackage{mathpartir}
+
 }}
 
 % \let\olddefs\ottdefnss
@@ -43,7 +44,7 @@ indexvar i  ::= {{com Indices (ott artifact, please ignore)}}
 grammar
 
 n  :: Natural ::= {{com Natural Numbers }}
-  |  n1 :+: n2  :: M :: Plus {{tex [[n1]]+[[n2]]}} %TODO color
+  |  n1 :+: n2  :: M :: Plus {{tex [[n1]] \black{+} [[n2]]}} %TODO color
   | DYN :: M :: Dyn {{tex \mathtt{ DYN } }}
   | BOOL :: M :: Bool {{tex \mathtt{BOOL } }}
   | NAT :: M :: Nat {{tex \mathtt{NAT } }}
@@ -56,24 +57,24 @@ b {{tex b}} :: Boolean ::= {{ com Booleans }}
   | false :: :: False
 
 
-e :: e ::= 
-  | x :: :: Var {{com Variables}}
-  | b :: :: Bool {{com Booleans }}
-  | n :: :: Nat {{com Natural Numbers }}
-  | \ x  . e :: :: Lam {{com Functions }} 
+e {{tex \source{e} }} :: e ::= 
+  | x :: :: Var {{com Variables}} {{tex \blue{[[x]]} }}
+  | b :: :: Bool {{com Booleans }} {{tex \blue{[[b]]} }}
+  | n :: :: Nat {{com Natural Numbers }} {{tex \blue{[[n]]} }}
+  | \ x  . e :: :: Lam {{com Functions }} {{tex \blue{\lambda [[x]]}  \ldotp [[e]] }}
   | e1 $ e2 :: :: App {{com Function Application}} {{tex [[e1]]\ [[e2]]}}
-  | e1 + e2 :: :: Plus {{com Addition}}
-  | e1 == e2 :: :: Eq {{com Number Equality Test}}
-  | if e1 then e2 else e3 :: :: If {{com Conditionals}} % {{tex \ottkw{if}\ [[e1]]\ \ottkw{then}\ [[e2]]\ \ottkw{else}\ [[e3]]}}
-  | ( e1 , e2 ) :: :: Pair {{com Tuples}} {{tex \langle [[e1]], [[e2]] \rangle}}
-  | pi1 e :: :: Proj1  {{com Tuple First Projection}}
-  | pi2 e :: :: Proj2  {{com Tuple Second Projection}}
-  | pi @ i e :: M :: Proji {{tex \pi_{[[i]]} [[e]] }}
-  | e @ i :: M :: Expri {{tex [[e]]_{[[i]]} }}
+  | e1 + e2 :: :: Plus {{com Addition}} {{tex [[e1]] \blue{\boldsymbol{+} } [[e2]]}}
+  | e1 == e2 :: :: Eq {{com Number Equality Test}} {{tex [[e1]] \blue{\stackrel{?}{=} } [[e2]] }}
+  | if e1 then e2 else e3 :: :: If {{com Conditionals}}  {{tex \blue{\ottkw{if} }\ [[e1]]\ \blue{\ottkw{then} }\ [[e2]]\ \blue{\ottkw{else} }\ [[e3]]}}
+  | ( e1 , e2 ) :: :: Pair {{com Tuples}} {{tex \blue{\langle} [[e1]] \blue{,} [[e2]] \blue{\rangle} }}
+  | pi1 e :: :: Proj1  {{com Tuple First Projection}} {{tex \blue{ \pi_1 } [[e]] }}
+  | pi2 e :: :: Proj2  {{com Tuple Second Projection}} {{tex \blue{ \pi_2 } [[e]] }}
+  | pi @ i e :: M :: Proji {{tex \blue{ \pi_{[[i]]} } [[e]] }}
+  | e @ i :: M :: Expri {{tex [[e]]_\black{[[i]]} }}
   | ep e :: :: Ascr {{com Evidence Ascription}}
-  | error :: :: Err {{com Runtime Type Error}}
-  | ( e ) :: M :: Parens {{tex ([[e]]) }} 
-  | [ x |=> e1 ] e2 :: M :: Subst {{tex  [ [[e1]] / [[x]] ] [[e2]] }}
+  | error :: :: Err {{com Runtime Type Error}} {{tex \blue{ \ottkw{error} }  }}
+  | ( e ) :: M :: Parens {{tex  \blue{(} [[e]] \blue{)}  }} 
+  | [ x |=> e1 ] e2 :: M :: Subst {{tex  \black{[} [[e1]] \black{/} [[x]] \black{]} [[e2]] }}
   | C [ e ] :: M :: Context 
   | eval ( e ) :: M :: Eval
   | 120 :: M :: Num120
@@ -91,22 +92,22 @@ O :: Observable ::= {{com Observable values}}
   | b :: :: Bool
   | n :: :: Nat
 
-r {{tex r}} :: Raw ::= {{com Raw Irreducable (closed) terms}}
-  | b :: :: Bool
-  | n :: :: Nat
-  | \ x  . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
-  | ( v1 , v2 ) :: :: Pair
+r {{tex \source{r} }} :: Raw ::= {{com Raw Irreducable (closed) terms}}
+  | b :: :: Bool {{tex \blue{[[b]]} }}
+  | n :: :: Nat {{tex \blue{[[n]]} }}
+  | \ x  . e :: :: Lam {{com Functions }} {{tex \blue{\lambda [[x]]}  \ldotp [[e]] }}
+  | ( v1 , v2 ) :: :: Pair {{tex \blue{\langle} [[v1]] \blue{,} [[v2]] \blue{\rangle} }}
   % | ( r1 , .... ,  ri ) :: M :: PairMany
 
-v {{tex v}} :: Irr ::= {{com Irreducable (closed) terms }}
+v {{tex \source{v} }} :: Irr ::= {{com Irreducable (closed) terms }}
   | ep r :: :: Ascr
-  | b :: :: Bool 
-  | n :: :: Nat
-  | \ x  . e :: :: Lam {{com Functions }} {{ tex \lambda [[x]] \ldotp [[e]]}}
-  | ( v1 , v2 ) :: :: Pair
+  | b :: :: Bool  {{tex \blue{[[b]]} }}
+  | n :: :: Nat {{tex \blue{[[n]]} }}
+  | \ x  . e :: :: Lam {{com Functions }} {{tex \blue{\lambda [[x]]}  \ldotp [[e]] }}
+  | ( v1 , v2 ) :: :: Pair {{tex \blue{\langle} [[v1]] \blue{,} [[v2]] \blue{\rangle} }}
   % | ( v1 , .... ,  vi ) :: M :: PairMany
 
-ep {{tex \varepsilon}} :: Evidence ::= 
+ep {{tex \source{ep} }} :: Evidence ::= 
   | << T >> :: :: Ev {{tex \{ [[T]] \} }}
   | ep1 /\ ep2 :: M :: Meet
   | dom ep :: M :: Dom
@@ -116,17 +117,17 @@ ep {{tex \varepsilon}} :: Evidence ::=
   | Prod @ i ep :: M :: Proji {{tex \ottkw{Proj}_{[[i]]} [[ep]] }}
   | ( ep ) :: M :: Parens
 
-T :: Type ::= {{com Types}}
-  | Nat :: :: Nat {{tex \mathsf{Nat} }}
-  | Bool :: :: Bool {{tex \mathsf{Bool} }}
-  | T1 -> T2 :: :: Arrow {{tex [[T1]]\to[[T2]]}}
-  | T1 * T2 :: :: PRoduct {{ tex [[T1]]\times[[T2]]}}
-  | ? :: :: Unknown 
+T {{tex \source{T} }} :: Type ::= {{com Types}}
+  | Nat :: :: Nat {{tex \blue{\mathsf{Nat} } }}
+  | Bool :: :: Bool {{tex \blue{\mathsf{Bool} } }}
+  | T1 -> T2 :: :: Arrow {{tex [[T1]]\blue{\to}[[T2]]}}
+  | T1 * T2 :: :: PRoduct {{ tex [[T1]]\blue{\times}[[T2]]}}
+  | ? :: :: Unknown {{tex \blue{?} }}
   % | dom T :: M :: Dom
   % | cod T :: M :: Cod
   % | left T :: M :: Left 
   % | right T :: M :: Right   
-  | ( T ) :: M :: Parens {{tex ([[T]])}}
+  | ( T ) :: M :: Parens {{tex \blue{( }[[T]] \blue{)} }}
   | [ T ] :: M :: Implicit {{ tex [[T]] }}
   % | T1 /\ T2 :: M :: Meet 
   | dom T :: M :: Dom
@@ -135,7 +136,7 @@ T :: Type ::= {{com Types}}
   | Prod2 T :: M :: Right
   | Prod @ i T :: M :: Proji {{tex \ottkw{Proj}_{[[i]]} [[T]] }}
 
-Gamma {{tex \Gamma}} :: Gamma ::= {{com Environments}}
+Gamma {{ tex \blue{\Gamma} }} :: Gamma ::= {{com Environments}}
   | empty :: :: Empty {{tex \cdot}}
   | Gamma , ( x : T ) :: :: Cons 
 
@@ -154,35 +155,37 @@ C :: C ::=                               {{ com Context Frames }}
   | if __ then e1 else e2 :: :: If
 
 
-u , k :: CPSValue ::= 
-  | x :: :: Var
-  | n :: :: Nat
-  | b :: :: Bool
-  | fix x u :: :: Fix
-  |  \ x1 ... xi . t  :: :: Fun 
-  | ( u1 , u2 ) :: :: Pair {{tex \langle [[u1]], [[u2]]\rangle }}
-  | ( u ) :: M :: Parens
-  | MEET :: M :: MeetFun {{tex \mathtt{MEET } }}
-  | DOM ::  M :: DomFun {{tex \mathtt{DOM } }}
-  | COD :: M :: CodFun {{tex \mathtt{COD } }}
-  | PROD1 :: M :: Prod1 {{tex \mathtt{PROD}_1 }}
-  | PROD2 :: M :: Prod2 {{tex \mathtt{PROD}_2 }}
-  | PROD @ i :: M :: Prodi {{tex \mathtt{PROD}_{[[i]]} }}
-  | [| ep |] :: M :: TTrans {{tex \mathcal{T}\llbracket [[ep]] \rrbracket}}
-  | [| v |] :: M :: VTrans {{tex \mathcal{V}\llbracket [[v]] \rrbracket}}
-  | [ x |=> u ] u' :: M :: Subst {{tex  [ [[u]] / [[x]] ] [[u']] }}
+u {{tex \Ltarget{u} }} , k {{tex \Ltarget{k} }} :: CPSValue ::= 
+  | x :: :: Var {{tex \red{[[x]]} }}
+  | n :: :: Nat {{tex \red{[[n]]} }}
+  | b :: :: Bool {{tex \red{[[b]]} }}
+  | fix x u :: :: Fix {{tex \red{\ottkw{fix} [[x]]} [[u]]  }}
+  |  \ vars . t  :: :: Fun {{tex \red{\lambda [[vars]]}\ldotp [[t]] }}
+  | ( u1 , u2 ) :: :: Pair {{tex \red{\langle} [[u1]] \red{,} [[u2]]\red{\rangle} }}
+  | \red{(} u \red{)} :: M :: Parens
+  | MEET :: M :: MeetFun {{tex \red\mathtt{MEET } }}
+  | DOM ::  M :: DomFun {{tex \red\mathtt{DOM } }}
+  | COD :: M :: CodFun {{tex \red\mathtt{COD } }}
+  | PROD1 :: M :: Prod1 {{tex \red\mathtt{PROD}_1 }}
+  | PROD2 :: M :: Prod2 {{tex \red\mathtt{PROD}_2 }}
+  | PROD @ i :: M :: Prodi {{tex \red\mathtt{PROD}_\black{[[i]]} }}
+  | [| ep |] :: M :: TTrans {{tex \black\mathcal{T}\black\llbracket [[ep]] \black\rrbracket}}
+  | [| v |] :: M :: VTrans {{tex \black\mathcal{V}\black\llbracket [[v]] \black\rrbracket}}
+  | [ x |=> u ] u' :: M :: Subst {{tex  \black[ [[u]] \black/ [[x]] \black] [[u']] }}
 
-d :: CPSDecl ::=
-  | x := u :: :: Def
-  | x := pi1 u :: :: Proj1
-  | x := pi2 u :: :: Proj2
-  | x := u1 + u2 :: :: Plus
-  | x := u1 == u2 :: :: Eq
-  | x := pi @ i u :: M :: Proji {{tex [[x]] := \pi_{[[i]]}\ [[u]] }}
+vars {{tex \red{\mathrm{x}_\black{1} }\ldots \red{\mathrm{x}_\black{i} } }} :: vars ::= 
+  | x1 .. xi :: :: Vars
+
+d {{ tex \Ltarget{d} }} :: CPSDecl ::=
+  | x := u :: :: Def {{tex \red{[[x]] :=} [[u]] }}
+  | x := pi1 u :: :: Proj1 {{tex \red{[[x]] := \pi_1} [[u]] }}
+  | x := pi2 u :: :: Proj2 {{tex \red{[[x]] := \pi_2} [[u]] }}
+  | x := u1 + u2 :: :: Plus {{tex \red{[[x]] := } [[u1]] \red{+} [[u2]] }}
+  | x := u1 == u2 :: :: Eq  {{tex \red{[[x]] := } [[u1]] \red{\stackrel{?}{=} } [[u2]] }}
+  | x := pi @ i u :: M :: Proji {{tex [[x]] := \red{\pi}_\black{[[i]]}\ [[u]] }}
 
 
-t :: CPS ::= 
-  | v :: :: Value 
+t {{tex \Ltarget{d} }} :: CPS ::= 
   | let d in t :: :: Let
   | u [ arg ] :: :: App {{tex [[u]]([[arg]])}} 
   | if u t1 t2 :: :: If {{tex \ottkw{ if }\ [[u]]\ \ottkw{ then }\ [[t1]]\ \ottkw{ else }\ [[t2]] }}
@@ -199,7 +202,7 @@ t :: CPS ::=
   | else t :: M :: Else {{tex \ottkw{ else }\ [[t]]  }}
   | ,,, :: M :: Ldots {{tex \ldots}}
 
-arg :: Arg ::=
+arg {{tex \red{\mathrm{u}_\black{1} }\ldots \red{\mathrm{u}_\black{i} } }}  :: Arg ::=
   | u1 , ... , ui :: :: Seq
 
 
@@ -292,7 +295,7 @@ n1 + n2  --> n1 :+: n2
 
 n1 + v --> e
 ----------------------------------------- :: PlusEvL
-ep n1 + v  --> e
+(ep n1) + v  --> e
 
 n1 + n2 --> e
 ----------------------------------------- :: PlusEvR
@@ -307,7 +310,7 @@ n1 == n2  --> false
 
 n1 == v --> e
 ----------------------------------------- :: EqEvL
-ep n1 == v  --> e
+(ep n1) == v  --> e
 
 n1 == n2 --> e
 ----------------------------------------- :: EqEvR

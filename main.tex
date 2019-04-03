@@ -9,13 +9,21 @@
 %      paperwidth=6.75in, paperheight=10in,
 %      top=58pt, bottom=44pt, inner=46pt, outer=46pt,
 %      marginparwidth=2pc,heightrounded
-% ]{geometry}
+% ]{geometry}  
 \usepackage{geometry}
-\usepackage{ifthen} 
-% \usepackage{pdflscape} 
+\usepackage{ifthen}  
+% \usepackage{pdflscape}   
 % \usepackage{alltt}%hack 
 % \geometry{a4paper,dvips,twoside,left=22.5mm,right=22.5mm,top=20mm,bottom=30mm}
 \usepackage{color}    
+\usepackage[dvipsnames]{xcolor}
+\newcommand{\blue}[1]{ {\color{RoyalBlue}{{#1}}} }
+\newcommand{\black}[1]{ {\color{Black}{{#1}}} }
+\newcommand{\red}[1]{ {\color{BrickRed}{{#1}}} }
+
+
+
+
 \usepackage{mathpartir}   
 \usepackage{stmaryrd}   
 
@@ -38,11 +46,30 @@
 \newcommand*{\lemmaautorefname}{Lemma}
 
 \newcommand{\abe}{\ensuremath{\alpha\beta\eta}}
-
+ 
 \usepackage[implicitPremiseBreaks]{ottalt}  
+\newcommand{\targetstyle}[3]{\color{BrickRed}\mathrm{ {#1}_{#2}#3 } }
+\newcommand{\sourcestyle}[3]{\color{RoyalBlue}\mathsf{ {#1}_{#2}#3 } }
+\newNTclass{source} 
+
+\newsource[\NTCAPTURELOW{\sourcestyle }]{e}{e}  
+\newsource[\NTCAPTURELOW{\sourcestyle }]{r}{r}  
+\newsource[\NTCAPTURELOW{\sourcestyle }]{v}{v}
+\newsource[\NTCAPTURELOW{\sourcestyle }]{T}{\tau}
+\newsource[\NTCAPTURELOW{\sourcestyle }]{ep}{\varepsilon}
+\newsource[\NTCAPTURELOW{\sourcestyle }]{Gamma}{\Gamma} 
+
+\newNTclass{Ltarget}
+\newLtarget[\NTCAPTURELOW{\targetstyle }]{u}{u}
+\newLtarget[\NTCAPTURELOW{\targetstyle }]{k}{k}
+\newLtarget[\NTCAPTURELOW{\targetstyle }]{d}{d}
+\newLtarget[\NTCAPTURELOW{\targetstyle }]{t}{t} 
+
 \inputott{GTFL_defns}       
  
 \newcommand{\rrule}[1]{\rref*{#1}}
+
+
  
 
 \begin{document}
@@ -59,10 +86,10 @@ elaboration in the framework of Abstracting Gradual Typing (AGT)~\citep{agt},
 and allows the meaning of gradual programs to be determined in terms of evidence.
 
 \subsection{Terms}
-
+ 
 The syntax for terms for GTFL is given in \autoref{fig:term-syntax}.
 The language is essentially a simply typed lambda calculus with
-integers, booleans, and base types, except that a term $[[e]]$
+integers, booleans, and base types, except that a term $[[e]]$ 
 may be ascribed with \textit{evidence} $[[epsilon]]$.
 This evidence contains typing information that evolves throughout the run of a program.
 We explain evidence in detail in \autoref{subsec:type-rules}.
@@ -178,13 +205,13 @@ and $[[T1]]$ is more precise than $[[T2]]$ if $[[T1 /\ T2 ==== T1]]$.
 	& [[Prod @ i ?]] & = && [[?]] 
 	\end{align*}
 	\caption{Source Language: Partial Type Operations}
-	\label{fig:type-ops}
+	\label{fig:type-ops} 
 \end{figure}
 
 \subsection{Runtime Semantics}
 
-\begin{figure}[H] 
-	\ottdefnsSemantics{}
+\begin{figure}[H]  
+	\ottdefnsSemantics{} 
 	\caption{Source Language: Small-Step Operational Semantics}
 	\label{fig:source-semantics}
 \end{figure}
@@ -550,7 +577,7 @@ translate to target terms that will eventually step to some common term.
 		we have $[[ [|pi @ i (v1 , v2)|]k  ]]$ steps to \\ $[[ (\ x . let y1 := pi1 x in ,,,)[ ( [|ep|], ([|v1|], [|v2|] ))] ]]$.
 		If we $\beta$-reduce, and substitute for the let-expressions, we get $[[ PROD @ i [ [|ep|], (\ z1 . ,,,)] ]]$.
 		We then apply \autoref{lem:ev-correct} and let-substitution to step to $[[error]]$. 
-
+ 
 		\item \rrule{RedAscr}
 		Then $[[e1]]=[[ep1 (ep2 r)]]$ and $[[e2]]=[[(ep1 /\ ep2) r]]$.
 		Applying \rrule{TransformEv} with \autoref{lem:canonical-trans} and and \autoref{lem:value-expr-trans}, we can see that

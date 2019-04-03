@@ -102,7 +102,7 @@ sub mylatex {
   print STDOUT "$mystdout";
   print STDERR "$mystderr";
 
-  system('rm', '-f', "$base-filtered.tex");
+  # system('rm', '-f', "$base-filtered.tex");
   fix_synctex("$base");
   return $return;
 }
